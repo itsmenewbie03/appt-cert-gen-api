@@ -36,8 +36,8 @@ admin_router.post("/login", async (req: Request, res: Response) => {
         });
     }
     const token_data = { role: "admin", email: email };
-    const refresh_token = generate_token(token_data, "refresh_token");
-    const access_token = generate_token(token_data, "access_token");
+    const refresh_token = await generate_token(token_data, "refresh_token");
+    const access_token = await generate_token(token_data, "access_token");
 
     await database
         .collection("refresh_tokens")

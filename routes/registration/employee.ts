@@ -5,9 +5,11 @@ import type { Admin } from "../../models/Admin";
 import type { Collection } from "mongodb";
 import evaluate_password from "../../utils/password_validator";
 import { hash } from "../../utils/password_auth";
-
+import { admin_auth } from "../../middlewares/admin_auth";
 const employee_registration_router = Router();
+
 employee_registration_router.use(json());
+employee_registration_router.use(admin_auth);
 
 employee_registration_router.post(
     "/register",

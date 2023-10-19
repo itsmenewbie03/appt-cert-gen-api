@@ -40,8 +40,8 @@ employee_router.post("/login", async (req: Request, res: Response) => {
     // we will now give the user an accessToken and a refreshToken
     // the refreshToken should be stored in db {email,refreshToken}
     const token_data = { role: "employee", email: email };
-    const refresh_token = generate_token(token_data, "refresh_token");
-    const access_token = generate_token(token_data, "access_token");
+    const refresh_token = await generate_token(token_data, "refresh_token");
+    const access_token = await generate_token(token_data, "access_token");
 
     await database
         .collection("refresh_tokens")
