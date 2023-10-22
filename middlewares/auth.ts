@@ -1,7 +1,7 @@
 import type { Request, Response, NextFunction } from "express";
 import { verify_token } from "../utils/jwt";
 
-const admin_auth = async (req: Request, res: Response, next: NextFunction) => {
+const auth = async (req: Request, res: Response, next: NextFunction) => {
     const error_codes = [
         "ERR_JWT_EXPIRED",
         "ERR_JWS_INVALID",
@@ -30,11 +30,7 @@ const admin_auth = async (req: Request, res: Response, next: NextFunction) => {
                 "So you're persistent huh? Maybe you could actually do it.",
         });
     }
-    if (!(token_data?.payload?.role === "admin")) {
-        return res.status(403).json({
-            message: "You need to be an admin to perform this.",
-        });
-    }
+    req.headers["email"] = token_data?.payload?.email
     next();
 };
-export { admin_auth };
+export { auth };
