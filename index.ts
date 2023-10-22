@@ -3,10 +3,10 @@ import admin_router from "./routes/auth/admin";
 import employee_registration_router from "./routes/registration/employee";
 import employee_router from "./routes/auth/employee";
 import session_router from "./routes/auth/session";
-
+import cors from "cors";
 const PORT = process.env.PORT || 3000;
 const app = express();
-
+app.use(cors());
 app.use("/api/auth/admin", admin_router);
 app.use("/api/auth/employee", employee_router);
 app.use("/api/employee/", employee_registration_router);
