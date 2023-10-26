@@ -3,4 +3,4 @@ interface RefreshToken {
     refresh_token: string;
 }
 
-export { RefreshToken };
+export type { RefreshToken };
