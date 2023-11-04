@@ -1,12 +1,11 @@
 import type { Request, Response } from "express";
-import { database } from "../../db/mongo";
-import type { Admin } from "../../models/Admin";
-import type { Collection } from "mongodb";
 import { generate_token } from "../../utils/jwt";
 import {
     get_google_user,
     get_google_oauth_token,
 } from "../../utils/google_auth";
+import { find_admin_by, update_admin_by } from "../../services/admin_services";
+import { add_new_refresh_token } from "../../services/refresh_token_services";
 
 const google_oauth_bind_controller = async (req: Request, res: Response) => {
     const { code } = req.body;
@@ -29,12 +28,11 @@ const google_oauth_bind_controller = async (req: Request, res: Response) => {
                 .status(403)
                 .json({ message: "Account must have a verified email." });
         }
+        //  type casting email as string as this is always present
+        //  thanks to my middleware
+        const email = req.headers["email"] as string;
         // proceed to binding
-        const email = req.headers["email"];
-        const admins: Collection<Admin> = database.collection("admins");
-        const admin = await admins
-            .find({ email: email }, { projection: { _id: 0 } })
-            .toArray();
+        const admin = await find_admin_by({ email });
         // this would be weird if this happens
         if (admin.length < 0) {
             return res
@@ -47,9 +45,11 @@ const google_oauth_bind_controller = async (req: Request, res: Response) => {
                 message: "You already have a connected google account.",
             });
         }
-        const update_result = await admins.updateOne(
-            { email: email },
-            { $set: { google_account_id: id } }
+        const update_result = await update_admin_by(
+            { email },
+            {
+                google_account_id: id,
+            }
         );
         if (!update_result.acknowledged && update_result.modifiedCount == 0) {
             return res
@@ -81,10 +81,7 @@ const google_oauth_login_controller = async (req: Request, res: Response) => {
         const { id } = await get_google_user(id_token, access_token);
 
         // proceed to binding
-        const admins: Collection<Admin> = database.collection("admins");
-        const admin = await admins
-            .find({ google_account_id: id }, { projection: { _id: 0 } })
-            .toArray();
+        const admin = await find_admin_by({ google_account_id: id });
         if (admin.length < 0) {
             return res.status(400).json({
                 message:
@@ -98,6 +95,18 @@ const google_oauth_login_controller = async (req: Request, res: Response) => {
             token_data,
             "refresh_token"
         );
+        // add the refresh token to the database
+        const result = await add_new_refresh_token({
+            email: admin_data.email,
+            refresh_token: _refresh_token,
+        });
+
+        if (!result.acknowledged || !result.insertedId) {
+            return res.status(500).json({
+                message:
+                    "An error is encountered while trying to store data to the database.",
+            });
+        }
         return res.status(200).json({
             message: "Login successfully",
             access_token: _access_token,

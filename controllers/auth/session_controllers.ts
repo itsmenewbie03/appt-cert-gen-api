@@ -1,8 +1,9 @@
 import type { Request, Response } from "express";
-import { database } from "../../db/mongo";
-import type { RefreshToken } from "../../models/RefreshToken";
-import type { Collection } from "mongodb";
 import { generate_token, verify_token } from "../../utils/jwt";
+import {
+    delete_refresh_token_by,
+    find_refresh_token_by,
+} from "../../services/refresh_token_services";
 const session_refresh_controller = async (req: Request, res: Response) => {
     const error_codes = [
         "ERR_JWT_EXPIRED",
@@ -41,11 +42,8 @@ const session_refresh_controller = async (req: Request, res: Response) => {
         });
     }
     // check if the refresh token is in db
-    const refresh_tokens: Collection<RefreshToken> =
-        database.collection("refresh_tokens");
-    const refresh_token = await refresh_tokens
-        .find({ refresh_token: token }, { projection: { _id: 0 } })
-        .toArray();
+    const refresh_token = await find_refresh_token_by({ refresh_token: token });
+
     if (refresh_token.length == 0) {
         return res.status(404).json({
             message: "The token you provided is not found in the database.",
@@ -101,18 +99,15 @@ const session_logout_controller = async (req: Request, res: Response) => {
         });
     }
     // check if the refresh token is in db
-    const refresh_tokens: Collection<RefreshToken> =
-        database.collection("refresh_tokens");
-    const refresh_token = await refresh_tokens
-        .find({ refresh_token: token }, { projection: { _id: 0 } })
-        .toArray();
+
+    const refresh_token = await find_refresh_token_by({ refresh_token: token });
     if (refresh_token.length == 0) {
         return res.status(404).json({
             message: "The token you provided is not found in the database.",
         });
     }
     // send a new access token now
-    const delete_result = await refresh_tokens.deleteOne({
+    const delete_result = await delete_refresh_token_by({
         refresh_token: token,
     });
     if (delete_result.acknowledged && delete_result.deletedCount > 0) {

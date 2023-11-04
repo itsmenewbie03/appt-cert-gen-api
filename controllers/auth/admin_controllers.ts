@@ -1,10 +1,8 @@
 import type { Request, Response } from "express";
-import { database } from "../../db/mongo";
-import type { Admin } from "../../models/Admin";
-import type { Collection } from "mongodb";
 import { compare } from "../../utils/password_auth";
 import { generate_token } from "../../utils/jwt";
-
+import { find_admin_by } from "../../services/admin_services";
+import { add_new_refresh_token } from "../../services/refresh_token_services";
 const admin_login_controller = async (req: Request, res: Response) => {
     const { email, password } = req.body;
     console.log(req.body);
@@ -14,11 +12,7 @@ const admin_login_controller = async (req: Request, res: Response) => {
             .json({ message: "Invalid request, please use your brain." });
     }
 
-    const admins: Collection<Admin> = database.collection("admins");
-    const admin_data = await admins
-        .find({ email: email }, { projection: { _id: 0 } })
-        .toArray();
-
+    const admin_data = await find_admin_by({ email });
     if (admin_data.length == 0) {
         return res.status(404).json({
             message:
@@ -34,10 +28,19 @@ const admin_login_controller = async (req: Request, res: Response) => {
     const token_data = { role: "admin", email: email };
     const refresh_token = await generate_token(token_data, "refresh_token");
     const access_token = await generate_token(token_data, "access_token");
+    // insert_token
 
-    await database
-        .collection("refresh_tokens")
-        .insertOne({ email: email, refresh_token: refresh_token });
+    // i officially love TS now
+    const result = await add_new_refresh_token({
+        email: email,
+        refresh_token: refresh_token,
+    });
+    if (!result.acknowledged || !result.insertedId) {
+        return res.status(500).json({
+            message:
+                "An error is encountered while trying to store data to the database.",
+        });
+    }
     return res.status(200).json({
         message: "Login success",
         refresh_token: refresh_token,

@@ -1,9 +1,10 @@
 import type { Request, Response } from "express";
-import { database } from "../../db/mongo";
-import type { Admin } from "../../models/Admin";
-import type { Collection } from "mongodb";
 import evaluate_password from "../../utils/password_validator";
 import { hash } from "../../utils/password_auth";
+import {
+    add_new_employee,
+    find_employee_by,
+} from "../../services/employee_services";
 const employee_register_controller = async (req: Request, res: Response) => {
     const { email, password } = req.body;
 
@@ -12,12 +13,9 @@ const employee_register_controller = async (req: Request, res: Response) => {
             .status(400)
             .json({ message: "Invalid request, please use your brain." });
     }
-    const admins: Collection<Admin> = database.collection("employees");
-    const admin = await admins
-        .find({ email: email }, { projection: { _id: 0 } })
-        .toArray();
+    const employee = await find_employee_by({ email });
 
-    if (admin.length > 0) {
+    if (employee.length > 0) {
         return res
             .status(400)
             .json({ message: "The email provided is already registered." });
@@ -46,15 +44,18 @@ const employee_register_controller = async (req: Request, res: Response) => {
         email: email,
         password: await hash(password),
     };
-    const result = await database
-        .collection("employees")
-        .insertOne(employee_data);
+    const result = await add_new_employee(employee_data);
     console.log(
         `DEBUG: the result after inserting new employee to db ${JSON.stringify(
             result
         )}`
     );
-    // as if all inserts is successfull
+    if (!result.acknowledged || !result.insertedId) {
+        return res.status(500).json({
+            message:
+                "An error is encountered while trying to store data to the database.",
+        });
+    }
     return res
         .status(200)
         .json({ message: "Employee registered successfully." });
