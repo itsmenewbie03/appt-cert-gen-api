@@ -1,7 +1,11 @@
 import type { Request, Response } from "express";
 import { compare } from "../../utils/password_auth";
 import { generate_token } from "../../utils/jwt";
-import { find_employee_by } from "../../services/employee_services";
+import {
+    delete_employee_by,
+    find_employee_by,
+    update_employee_by,
+} from "../../services/employee_services";
 import { add_new_refresh_token } from "../../services/refresh_token_services";
 
 const employee_login_controller = async (req: Request, res: Response) => {
@@ -52,4 +56,47 @@ const employee_login_controller = async (req: Request, res: Response) => {
     });
 };
 
-export { employee_login_controller };
+const employee_delete_controller = async (req: Request, res: Response) => {
+    const { email } = req.body;
+    if (!email) {
+        return res.status(400).json({
+            message:
+                "Please provide the email of the employee account to delete.",
+        });
+    }
+    // check if employee with the specified email exists
+    const employee = await find_employee_by({ email });
+    if (!employee.length) {
+        return res.status(404).json({
+            message: "Employee with that email is not found in the database.",
+        });
+    }
+    const result = await delete_employee_by({ email: email });
+    if (!result.acknowledged || !result.deletedCount) {
+        return res.status(400).json({ message: "Failed to delete employee." });
+    }
+    return res.status(200).json({ message: "Employee deleted successfully." });
+};
+
+const employee_update_controller = async (req: Request, res: Response) => {
+    const { query, update } = req.body;
+    if (!query || !update) {
+        return res.status(400).json({
+            message: "Please provide the query and update.",
+        });
+    }
+    // check if employee with the query exists
+    const employee = await find_employee_by({ ...query });
+    if (!employee.length) {
+        return res.status(404).json({
+            message: "Can't find employee based on the query provided.",
+        });
+    }
+    const result = await update_employee_by({ ...query }, { ...update });
+};
+
+export {
+    employee_login_controller,
+    employee_delete_controller,
+    employee_update_controller,
+};
