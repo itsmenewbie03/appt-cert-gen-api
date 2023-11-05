@@ -51,7 +51,7 @@ const google_oauth_bind_controller = async (req: Request, res: Response) => {
                 google_account_id: id,
             }
         );
-        if (!update_result.acknowledged && update_result.modifiedCount == 0) {
+        if (!update_result.acknowledged && !update_result.modifiedCount) {
             return res
                 .status(500)
                 .json({ message: "Failed to update database." });

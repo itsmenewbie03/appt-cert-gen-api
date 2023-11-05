@@ -30,13 +30,14 @@ const auth = async (req: Request, res: Response, next: NextFunction) => {
                 "So you're persistent huh? Maybe you could actually do it.",
         });
     }
-    if (!token_data?.payload?.email) {
+    if (!token_data?.payload?.email || !token_data?.payload?.role) {
         return res.status(400).json({
             message:
                 "The token provided does contain all the needed information to complete the request.",
         });
     }
     req.headers["email"] = token_data.payload.email;
+    req.headers["role"] = token_data.payload.role;
     next();
 };
 export { auth };

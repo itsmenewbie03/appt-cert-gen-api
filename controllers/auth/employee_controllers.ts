@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { compare } from "../../utils/password_auth";
+import { compare, hash } from "../../utils/password_auth";
 import { generate_token } from "../../utils/jwt";
 import {
     delete_employee_by,
@@ -8,6 +8,7 @@ import {
 } from "../../services/employee_services";
 import { add_new_refresh_token } from "../../services/refresh_token_services";
 import { AdminSchema } from "../../models/Admin";
+import evaluate_password from "../../utils/password_validator";
 
 const employee_login_controller = async (req: Request, res: Response) => {
     const { email, password } = req.body;
@@ -105,6 +106,13 @@ const employee_update_controller = async (req: Request, res: Response) => {
         });
     }
     console.log(`Updating with ${JSON.stringify(parsed_update.data)}`);
+
+    // prevent password override
+    if (parsed_update.data.password) {
+        return res.status(403).json({
+            message: "This is not the endpoint for changing password.",
+        });
+    }
     const result = await update_employee_by(
         { ...query },
         { ...parsed_update.data }
@@ -117,8 +125,77 @@ const employee_update_controller = async (req: Request, res: Response) => {
     return res.status(200).json({ message: "Employee updated successfully." });
 };
 
+const employee_change_password_controller = async (
+    req: Request,
+    res: Response
+) => {
+    // these are always a string
+    const role = req.headers["role"] as string;
+
+    const { email, current_password, new_password, confirm_new_password } =
+        req.body;
+    if (
+        (!current_password && role !== "admin") ||
+        !new_password ||
+        !confirm_new_password
+    ) {
+        return res.status(400).json({ message: "Missing parameters." });
+    }
+    const employee = await find_employee_by({ email });
+    if (!employee.length) {
+        return res
+            .status(404)
+            .json({ message: "No employee is found with the email provided." });
+    }
+    const { password } = employee[0];
+    if (role !== "admin" && !(await compare(current_password, password))) {
+        return res
+            .status(400)
+            .json({ message: "The current password provided is incorrect." });
+    }
+    if (current_password === new_password) {
+        return res
+            .status(400)
+            .json({
+                message:
+                    "The new password is the same with the current password.",
+            });
+    }
+
+    if (new_password !== confirm_new_password) {
+        return res.status(400).json({
+            message:
+                "The new password and confirm new password does not match.",
+        });
+    }
+    const password_evaluation = evaluate_password(new_password);
+    if (password_evaluation.length > 0) {
+        const reasons = password_evaluation.map((reason, index) => {
+            return reason.message.replace("string", "password");
+        });
+        return res.status(400).json({
+            message:
+                "The password provides does not pass the criteria of accepted passwords.",
+            reasons: reasons,
+        });
+    }
+
+    // now we can update the password
+    const hashed_new_password = await hash(new_password);
+    const update_result = await update_employee_by(
+        { email },
+        { password: hashed_new_password }
+    );
+    if (!update_result.acknowledged || !update_result.modifiedCount) {
+        return res
+            .status(500)
+            .json({ message: "Failed to update the database." });
+    }
+    return res.status(200).json({ message: "Password successfully changed." });
+};
 export {
     employee_login_controller,
     employee_delete_controller,
     employee_update_controller,
+    employee_change_password_controller,
 };
