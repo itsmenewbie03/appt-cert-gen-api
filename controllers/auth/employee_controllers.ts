@@ -7,6 +7,7 @@ import {
     update_employee_by,
 } from "../../services/employee_services";
 import { add_new_refresh_token } from "../../services/refresh_token_services";
+import { AdminSchema } from "../../models/Admin";
 
 const employee_login_controller = async (req: Request, res: Response) => {
     const { email, password } = req.body;
@@ -92,7 +93,28 @@ const employee_update_controller = async (req: Request, res: Response) => {
             message: "Can't find employee based on the query provided.",
         });
     }
-    const result = await update_employee_by({ ...query }, { ...update });
+    // lets validate the update
+    const update_schema = AdminSchema.partial().strip();
+    const parsed_update = update_schema.safeParse(update);
+    if (!parsed_update.success) {
+        return res.status(400).json({
+            message: `The update data provided is not valid.`,
+            cause: `${parsed_update.error.issues
+                .map((val, i) => `${val.path.join("|")}: ${val.message}`)
+                .join("; ")}.`,
+        });
+    }
+    console.log(`Updating with ${JSON.stringify(parsed_update.data)}`);
+    const result = await update_employee_by(
+        { ...query },
+        { ...parsed_update.data }
+    );
+    if (!result.acknowledged || !result.modifiedCount) {
+        return res.status(400).json({
+            message: "Failed to update the data in the database.",
+        });
+    }
+    return res.status(200).json({ message: "Employee updated successfully." });
 };
 
 export {
