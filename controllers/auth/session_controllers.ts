@@ -120,4 +120,19 @@ const session_logout_controller = async (req: Request, res: Response) => {
     });
 };
 
-export { session_refresh_controller, session_logout_controller };
+const session_status_controller = async (req: Request, res: Response) => {
+    const { email, role } = req.headers;
+    if (!email || !role) {
+        return res.status(400).json({
+            message: "The token does not contain the information needed.",
+        });
+    }
+    return res
+        .status(200)
+        .json({ message: "Success token is still valid", email, role });
+};
+export {
+    session_refresh_controller,
+    session_logout_controller,
+    session_status_controller,
+};
