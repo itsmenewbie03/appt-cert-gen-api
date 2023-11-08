@@ -5,7 +5,6 @@ const employee_registration_router = Router();
 
 employee_registration_router.use(json());
 employee_registration_router.use(admin_auth);
-
 employee_registration_router.post("/register", employee_register_controller);
 
 export default employee_registration_router;
