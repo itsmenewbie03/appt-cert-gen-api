@@ -9,16 +9,28 @@ import {
 import { add_new_refresh_token } from "../../services/refresh_token_services";
 import { AdminSchema } from "../../models/Admin";
 import evaluate_password from "../../utils/password_validator";
+import { validate_recaptcha } from "../../utils/recaptcha";
 
 const employee_login_controller = async (req: Request, res: Response) => {
-    const { email, password } = req.body;
+    const { email, password, recaptcha_token } = req.body;
     console.log(req.body);
-    if (!email || !password) {
+    if (!email || !password || !recaptcha_token) {
         return res
             .status(400)
             .json({ message: "Invalid request, please use your brain." });
     }
-
+    const verification_result = await validate_recaptcha(recaptcha_token);
+    if (!verification_result.success) {
+        return res.status(400).json({
+            message: "Recaptcha verification failed",
+            cause: `${verification_result["error-codes"].join("\n")}`,
+        });
+    }
+    if (verification_result.score <= 0.4) {
+        return res.status(400).json({
+            message: "Recaptcha verification failed because the score is too low.",
+        });
+    }
     const employee_data = await find_employee_by({ email });
 
     if (employee_data.length == 0) {
@@ -62,8 +74,7 @@ const employee_delete_controller = async (req: Request, res: Response) => {
     const { email } = req.body;
     if (!email) {
         return res.status(400).json({
-            message:
-                "Please provide the email of the employee account to delete.",
+            message: "Please provide the email of the employee account to delete.",
         });
     }
     // check if employee with the specified email exists
@@ -115,7 +126,7 @@ const employee_update_controller = async (req: Request, res: Response) => {
     }
     const result = await update_employee_by(
         { ...query },
-        { ...parsed_update.data }
+        { ...parsed_update.data },
     );
     if (!result.acknowledged || !result.modifiedCount) {
         return res.status(400).json({
@@ -127,7 +138,7 @@ const employee_update_controller = async (req: Request, res: Response) => {
 
 const employee_change_password_controller = async (
     req: Request,
-    res: Response
+    res: Response,
 ) => {
     // these are always a string
     const role = req.headers["role"] as string;
@@ -154,18 +165,14 @@ const employee_change_password_controller = async (
             .json({ message: "The current password provided is incorrect." });
     }
     if (current_password === new_password) {
-        return res
-            .status(400)
-            .json({
-                message:
-                    "The new password is the same with the current password.",
-            });
+        return res.status(400).json({
+            message: "The new password is the same with the current password.",
+        });
     }
 
     if (new_password !== confirm_new_password) {
         return res.status(400).json({
-            message:
-                "The new password and confirm new password does not match.",
+            message: "The new password and confirm new password does not match.",
         });
     }
     const password_evaluation = evaluate_password(new_password);
@@ -184,12 +191,10 @@ const employee_change_password_controller = async (
     const hashed_new_password = await hash(new_password);
     const update_result = await update_employee_by(
         { email },
-        { password: hashed_new_password }
+        { password: hashed_new_password },
     );
     if (!update_result.acknowledged || !update_result.modifiedCount) {
-        return res
-            .status(500)
-            .json({ message: "Failed to update the database." });
+        return res.status(500).json({ message: "Failed to update the database." });
     }
     return res.status(200).json({ message: "Password successfully changed." });
 };
