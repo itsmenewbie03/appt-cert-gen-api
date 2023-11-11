@@ -2,11 +2,17 @@ import type { ResidentData } from "../models/Resident";
 import { database } from "../db/mongo";
 
 const add_new_resident = async (resident_data: ResidentData) => {
-    /**
-     * TODO:
-     * ADD STRICT UNIQUE NAME IF REQUIRED
-     */
-    return await database.collection("residents").insertOne(resident_data);
+  /**
+   * TODO:
+   * ADD STRICT UNIQUE NAME IF REQUIRED
+   */
+  return await database.collection("residents").insertOne(resident_data);
+};
+const get_all_resident = async () => {
+  return await database
+    .collection("residents")
+    .find({}, { projection: { _id: 0 } })
+    .toArray();
 };
 
-export { add_new_resident };
+export { add_new_resident, get_all_resident };
