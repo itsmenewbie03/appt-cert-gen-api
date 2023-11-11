@@ -13,5 +13,11 @@ const resident_list_controller = async (req: Request, res: Response) => {
     data: residents,
   });
 };
-
+/**
+ * TODO:
+ * need to find ways to uniquely indentify a resident
+ * implement update controller
+ * implement delete controller
+ * implement find controller
+ **/
 export { resident_list_controller };
