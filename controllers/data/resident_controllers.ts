@@ -15,7 +15,7 @@ const resident_list_controller = async (req: Request, res: Response) => {
 };
 /**
  * TODO:
- * need to find ways to uniquely indentify a resident
+ * use ObjectID to indentify the resident
  * implement update controller
  * implement delete controller
  * implement find controller
