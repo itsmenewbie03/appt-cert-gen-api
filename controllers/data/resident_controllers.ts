@@ -91,7 +91,7 @@ const resident_update_controller = async (req: Request, res: Response) => {
 /**
  * TODO:
  * use ObjectID to indentify the resident - done
- * implement update controller
+ * implement update controller - done
  * implement delete controller
  * implement find controller - done
  **/
