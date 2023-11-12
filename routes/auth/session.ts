@@ -1,8 +1,8 @@
 import { Router, json } from "express";
 import {
-    session_refresh_controller,
-    session_logout_controller,
-    session_status_controller,
+  session_refresh_controller,
+  session_logout_controller,
+  session_status_controller,
 } from "../../controllers/auth/session_controllers";
 import { auth } from "../../middlewares/auth";
 

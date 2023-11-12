@@ -20,11 +20,9 @@ const admin_login_controller = async (req: Request, res: Response) => {
     });
   }
   if (verification_result.score <= 0.4) {
-    return res
-      .status(400)
-      .json({
-        message: "Recaptcha verification failed because the score is too low.",
-      });
+    return res.status(400).json({
+      message: "Recaptcha verification failed because the score is too low.",
+    });
   }
   const admin_data = await find_admin_by({ email });
   if (admin_data.length == 0) {
