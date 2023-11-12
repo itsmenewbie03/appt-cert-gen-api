@@ -24,9 +24,14 @@ const update_resident_by_id = async (
     .updateOne({ _id: resident_id }, { $set: { ...update } });
 };
 
+const delete_resident_by_id = async (resident_id: ObjectId) => {
+  return await database.collection("residents").deleteOne({ _id: resident_id });
+};
+
 export {
   add_new_resident,
   get_all_resident,
   find_resident_by_id,
   update_resident_by_id,
+  delete_resident_by_id,
 };

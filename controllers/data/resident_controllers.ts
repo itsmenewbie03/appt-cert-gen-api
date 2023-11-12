@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import {
+  delete_resident_by_id,
   find_resident_by_id,
   get_all_resident,
   update_resident_by_id,
@@ -88,15 +89,49 @@ const resident_update_controller = async (req: Request, res: Response) => {
   }
   return res.status(200).json({ message: "Resident updated successfully." });
 };
+
+const resident_delete_controller = async (req: Request, res: Response) => {
+  const { resident_id } = req.body;
+  if (!resident_id) {
+    return res.status(400).json({ message: "The resident_id is required." });
+  }
+  if (resident_id.length !== 24) {
+    return res
+      .status(400)
+      .json({ message: "The resident_id must be 24 characters long." });
+  }
+  const hex_string_rx = /^[a-fA-F0-9]+$/;
+  if (!hex_string_rx.test(resident_id)) {
+    return res
+      .status(400)
+      .json({ message: "The resident_id must be a hex string." });
+  }
+  const _resident_id = new ObjectId(resident_id);
+  const resident = await find_resident_by_id(_resident_id);
+  if (!resident.length) {
+    return res.status(404).json({
+      message: "No resident with the provided id exists in the database.",
+    });
+  }
+  const delete_result = await delete_resident_by_id(_resident_id);
+  if (!delete_result.acknowledged || !delete_result.deletedCount) {
+    return res
+      .status(400)
+      .json({ message: "No resident was deleted from the database." });
+  }
+  return res.status(200).json({ message: "Resident deleted successfully." });
+};
+
 /**
  * TODO:
  * use ObjectID to indentify the resident - done
  * implement update controller - done
- * implement delete controller
+ * implement delete controller - done
  * implement find controller - done
  **/
 export {
   resident_list_controller,
   resident_find_controller,
   resident_update_controller,
+  resident_delete_controller,
 };
