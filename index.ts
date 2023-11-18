@@ -8,6 +8,7 @@ import employee_accounts_router from "./routes/accounts/employee";
 import resident_router from "./routes/data/resident";
 import user_router from "./routes/auth/user";
 import cors from "cors";
+import document_router from "./routes/documents/document";
 
 const PORT = process.env.PORT || 3000;
 const app = express();
@@ -21,5 +22,6 @@ app.use("/api/oauth/google", google_oauth_router);
 app.use("/api/employee/", employee_registration_router);
 app.use("/api/accounts/employees", employee_accounts_router);
 app.use("/api/data/resident", resident_router);
+app.use("/api/documents", document_router);
 
 app.listen(PORT, () => console.log(`App is alive at http://localhost:${PORT}`));

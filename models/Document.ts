@@ -1,13 +1,14 @@
-interface GenericDocument {
-  first_name: string;
-  middle_name?: string;
-  last_name: string;
+import { ResidentData } from "./Resident";
+interface FreeDocument {
+  type: string;
+  requires_payment: false;
+  required_data: (keyof Partial<ResidentData>)[];
+}
+interface PaidDocument {
+  type: string;
+  requires_payment: true;
+  required_data: (keyof Partial<ResidentData>)[];
   or_number: string;
-  date_issued: Date;
-  title: String;
 }
-interface BarangayCertificate extends GenericDocument {
-  period_of_residency: string;
-}
-type Document = GenericDocument | BarangayCertificate;
+type Document = FreeDocument | PaidDocument;
 export type { Document };
