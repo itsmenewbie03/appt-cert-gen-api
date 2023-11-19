@@ -9,7 +9,7 @@ const find_user_by = async (user_query: Partial<User>) => {
 };
 
 const add_new_user = async (user_data: User) => {
-  return await database.collection("users").insertOne(employee_data);
+  return await database.collection("users").insertOne(user_data);
 };
 
 const update_user_by = async (
