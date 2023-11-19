@@ -4,9 +4,7 @@ import type { Collection } from "mongodb";
 
 const find_user_by = async (user_query: Partial<User>) => {
   const users: Collection<User> = database.collection("users");
-  const user_data = await users
-    .find({ ...user_query }, { projection: { _id: 0 } })
-    .toArray();
+  const user_data = await users.find({ ...user_query }).toArray();
   return user_data;
 };
 const update_user_by = async (

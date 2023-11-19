@@ -59,5 +59,14 @@ const user_login_controller = async (req: Request, res: Response) => {
     access_token: access_token,
   });
 };
-
+// HACK: injecting tokens to db xD
+//
+// const token_data = { role: "user", email: "user_01@bms.banggcud.gov.ph" };
+// const refresh_token = await generate_token(token_data, "refresh_token");
+//
+// const result = await add_new_refresh_token({
+//   email: "user_01@bms.banggcud.gov.ph",
+//   refresh_token: refresh_token,
+// });
+// console.log(result);
 export { user_login_controller };

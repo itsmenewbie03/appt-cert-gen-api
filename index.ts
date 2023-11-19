@@ -9,6 +9,7 @@ import resident_router from "./routes/data/resident";
 import user_router from "./routes/auth/user";
 import cors from "cors";
 import document_router from "./routes/documents/document";
+import transaction_router from "./routes/transactions/transaction";
 
 const PORT = process.env.PORT || 3000;
 const app = express();
@@ -23,5 +24,6 @@ app.use("/api/employee/", employee_registration_router);
 app.use("/api/accounts/employees", employee_accounts_router);
 app.use("/api/data/resident", resident_router);
 app.use("/api/documents", document_router);
+app.use("/api/transactions", transaction_router);
 
 app.listen(PORT, () => console.log(`App is alive at http://localhost:${PORT}`));
