@@ -7,6 +7,7 @@ import {
 } from "../../services/resident_services";
 import { ObjectId } from "mongodb";
 import { ResidentSchema } from "../../models/Resident";
+import { validate_object_id } from "../../utils/object_id_validator";
 
 const resident_list_controller = async (req: Request, res: Response) => {
   const residents = await get_all_resident();
@@ -26,19 +27,11 @@ const resident_find_controller = async (req: Request, res: Response) => {
   if (!resident_id) {
     return res.status(400).json({ message: "The resident_id is required." });
   }
-  if (resident_id.length !== 24) {
-    return res
-      .status(400)
-      .json({ message: "The resident_id must be 24 characters long." });
+  const validated_resident_id = validate_object_id(resident_id);
+  if (!validated_resident_id.success) {
+    return res.status(400).json({ message: validated_resident_id.message });
   }
-  const hex_string_rx = /^[a-fA-F0-9]+$/;
-  if (!hex_string_rx.test(resident_id)) {
-    return res
-      .status(400)
-      .json({ message: "The resident_id must be a hex string." });
-  }
-  const _resident_id = new ObjectId(resident_id);
-  const resident = await find_resident_by_id(_resident_id);
+  const resident = await find_resident_by_id(validated_resident_id.object_id);
   if (!resident.length) {
     return res.status(404).json({
       message: "No resident with the provided id exists in the database.",
@@ -56,18 +49,10 @@ const resident_update_controller = async (req: Request, res: Response) => {
       .status(400)
       .json({ message: "The resident_id and update is required." });
   }
-  if (resident_id.length !== 24) {
-    return res
-      .status(400)
-      .json({ message: "The resident_id must be 24 characters long." });
+  const validated_resident_id = validate_object_id(resident_id);
+  if (!validated_resident_id.success) {
+    return res.status(400).json({ message: validated_resident_id.message });
   }
-  const hex_string_rx = /^[a-fA-F0-9]+$/;
-  if (!hex_string_rx.test(resident_id)) {
-    return res
-      .status(400)
-      .json({ message: "The resident_id must be a hex string." });
-  }
-  const _resident_id = new ObjectId(resident_id);
   const update_schema = ResidentSchema.partial().strip();
   const parsed_update = update_schema.safeParse(update);
   if (!parsed_update.success) {
@@ -79,7 +64,7 @@ const resident_update_controller = async (req: Request, res: Response) => {
     });
   }
   const update_result = await update_resident_by_id(
-    _resident_id,
+    validated_resident_id.object_id,
     parsed_update.data,
   );
   if (!update_result.acknowledged || !update_result.modifiedCount) {
@@ -95,25 +80,19 @@ const resident_delete_controller = async (req: Request, res: Response) => {
   if (!resident_id) {
     return res.status(400).json({ message: "The resident_id is required." });
   }
-  if (resident_id.length !== 24) {
-    return res
-      .status(400)
-      .json({ message: "The resident_id must be 24 characters long." });
+  const validated_resident_id = validate_object_id(resident_id);
+  if (!validated_resident_id.success) {
+    return res.status(400).json({ message: validated_resident_id.message });
   }
-  const hex_string_rx = /^[a-fA-F0-9]+$/;
-  if (!hex_string_rx.test(resident_id)) {
-    return res
-      .status(400)
-      .json({ message: "The resident_id must be a hex string." });
-  }
-  const _resident_id = new ObjectId(resident_id);
-  const resident = await find_resident_by_id(_resident_id);
+  const resident = await find_resident_by_id(validated_resident_id.object_id);
   if (!resident.length) {
     return res.status(404).json({
       message: "No resident with the provided id exists in the database.",
     });
   }
-  const delete_result = await delete_resident_by_id(_resident_id);
+  const delete_result = await delete_resident_by_id(
+    validated_resident_id.object_id,
+  );
   if (!delete_result.acknowledged || !delete_result.deletedCount) {
     return res
       .status(400)
