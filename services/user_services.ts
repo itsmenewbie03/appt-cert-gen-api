@@ -7,6 +7,11 @@ const find_user_by = async (user_query: Partial<User>) => {
   const user_data = await users.find({ ...user_query }).toArray();
   return user_data;
 };
+
+const add_new_user = async (user_data: User) => {
+  return await database.collection("users").insertOne(employee_data);
+};
+
 const update_user_by = async (
   admin_query: Partial<User>,
   admin_data: Partial<User>,
@@ -19,4 +24,4 @@ const update_user_by = async (
   return update_result;
 };
 
-export { find_user_by, update_user_by };
+export { find_user_by, add_new_user, update_user_by };
