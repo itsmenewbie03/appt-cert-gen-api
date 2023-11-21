@@ -5,7 +5,8 @@ const add_new_resident = async (resident_data: ResidentData) => {
   return await database.collection("residents").insertOne(resident_data);
 };
 const get_all_resident = async () => {
-  return await database.collection("residents").find().toArray();
+  const residents: Collection<ResidentData> = database.collection("residents");
+  return residents.find().toArray();
 };
 
 const find_resident_by_id = async (resident_id: ObjectId) => {
