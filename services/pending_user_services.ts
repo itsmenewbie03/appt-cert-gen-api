@@ -2,6 +2,29 @@ import { database } from "../db/mongo";
 import type { User } from "../models/User";
 import type { Collection } from "mongodb";
 
+const get_all_pending_user = async () => {
+  const users: Collection<User> = database.collection("pending_users");
+  const user_data = await users.find().toArray();
+  return user_data;
+};
+
+const get_all_pending_user_with_info = async () => {
+  const users: Collection<User> = database.collection("pending_users");
+  const user_data = await users
+    .aggregate([
+      {
+        $lookup: {
+          from: "pending_residents",
+          localField: "resident_data_id",
+          foreignField: "_id",
+          as: "info",
+        },
+      },
+    ])
+    .toArray();
+  return user_data;
+};
+
 const find_pending_user_by = async (user_query: Partial<User>) => {
   const users: Collection<User> = database.collection("pending_users");
   const user_data = await users.find({ ...user_query }).toArray();
@@ -24,4 +47,10 @@ const update_pending_user_by = async (
   return update_result;
 };
 
-export { find_pending_user_by, add_new_pending_user, update_pending_user_by };
+export {
+  find_pending_user_by,
+  add_new_pending_user,
+  update_pending_user_by,
+  get_all_pending_user,
+  get_all_pending_user_with_info,
+};
