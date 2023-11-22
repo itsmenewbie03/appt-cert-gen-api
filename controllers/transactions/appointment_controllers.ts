@@ -2,7 +2,10 @@ import type { Request, Response } from "express";
 import { validate_object_id } from "../../utils/object_id_validator";
 import { find_user_by } from "../../services/user_services";
 import { Transaction, TransactionSchema } from "../../models/Transaction";
-import { add_new_transaction } from "../../services/transaction_services";
+import {
+  add_new_transaction,
+  get_all_transaction,
+} from "../../services/transaction_services";
 /**
  * This controller is for handling user requested appointment
  * */
@@ -67,4 +70,16 @@ const create_appointment_controller = async (req: Request, res: Response) => {
   return res.status(200).json({ message: "Appointment created successfully." });
 };
 
-export { create_appointment_controller };
+const appointment_list_controller = async (req: Request, res: Response) => {
+  const appointments = await get_all_transaction();
+  if (!appointments.length) {
+    return res
+      .status(404)
+      .json({ message: "The appointments database is currently empty." });
+  }
+  return res.status(200).json({
+    message: "Appoinments retrieved successfully.",
+    data: appointments,
+  });
+};
+export { create_appointment_controller, appointment_list_controller };
