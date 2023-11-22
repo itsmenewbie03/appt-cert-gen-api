@@ -1,10 +1,16 @@
 import type { Request, Response } from "express";
 import { validate_object_id } from "../../utils/object_id_validator";
 import { find_user_by } from "../../services/user_services";
-import { Transaction, TransactionSchema } from "../../models/Transaction";
+import {
+  Transaction,
+  TransactionSchema,
+  TransactionStatusSchema,
+} from "../../models/Transaction";
 import {
   add_new_transaction,
+  find_transaction_by_id,
   get_all_transaction,
+  update_transaction_by_id,
 } from "../../services/transaction_services";
 /**
  * This controller is for handling user requested appointment
@@ -82,4 +88,46 @@ const appointment_list_controller = async (req: Request, res: Response) => {
     data: appointments,
   });
 };
-export { create_appointment_controller, appointment_list_controller };
+
+const appointment_update_controller = async (req: Request, res: Response) => {
+  const { id, status } = req.body;
+  if (!id || !status) {
+    return res.status(400).json({ message: "Missing required parameters." });
+  }
+  const validated_id = validate_object_id(id);
+  if (!validated_id.success) {
+    return res.status(400).json({ message: validated_id.message });
+  }
+  const appointment = await find_transaction_by_id(validated_id.object_id);
+  if (!appointment.length) {
+    return res.status(404).json({
+      message: "No appoinment with the provided id is found on the database.",
+    });
+  }
+  const validated_status = TransactionStatusSchema.safeParse(status);
+  if (!validated_status.success) {
+    return res.status(400).json({
+      message: `The status provided is not valid.`,
+      cause: `${validated_status.error.issues
+        .map((val, i) => `${val.path.join("|")}: ${val.message}`)
+        .join("; ")}.`,
+    });
+  }
+  const update_result = await update_transaction_by_id(validated_id.object_id, {
+    status: validated_status.data,
+  });
+  if (!update_result.acknowledged || !update_result.modifiedCount) {
+    return res
+      .status(500)
+      .json({ message: "Failed to updated the appointment." });
+  }
+  return res
+    .status(200)
+    .json({ message: "Appointment status updated successfully." });
+};
+
+export {
+  create_appointment_controller,
+  appointment_list_controller,
+  appointment_update_controller,
+};
