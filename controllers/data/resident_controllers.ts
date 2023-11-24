@@ -101,13 +101,6 @@ const resident_delete_controller = async (req: Request, res: Response) => {
   return res.status(200).json({ message: "Resident deleted successfully." });
 };
 
-/**
- * TODO:
- * use ObjectID to indentify the resident - done
- * implement update controller - done
- * implement delete controller - done
- * implement find controller - done
- **/
 export {
   resident_list_controller,
   resident_find_controller,
