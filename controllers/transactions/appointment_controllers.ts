@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import { validate_object_id } from "../../utils/object_id_validator";
-import { find_user_by } from "../../services/user_services";
+import { find_user_by, find_user_by_id } from "../../services/user_services";
 import {
   Transaction,
   TransactionSchema,
@@ -12,6 +12,8 @@ import {
   get_all_transaction,
   update_transaction_by_id,
 } from "../../services/transaction_services";
+import { find_resident_by_id } from "../../services/resident_services";
+import { find_document_by_id } from "../../services/document_services";
 /**
  * This controller is for handling user requested appointment
  * */
@@ -75,9 +77,25 @@ const create_appointment_controller = async (req: Request, res: Response) => {
   }
   return res.status(200).json({ message: "Appointment created successfully." });
 };
-
+// BUG: this would be buggy but idc atm
+// this is very dirty code i hate to write it but i don't have a choice
+// gonna refactor soon xD
 const appointment_list_controller = async (req: Request, res: Response) => {
+  const data: any[] = [];
   const appointments = await get_all_transaction();
+
+  for (const e of appointments) {
+    const temp: any = { ...e };
+    const user_data = await find_user_by_id(e.user_id);
+    const { resident_data_id } = user_data[0];
+    const resident_data = await find_resident_by_id(resident_data_id);
+    const document_data = await find_document_by_id(e.document_id);
+    temp["user_data"] = { ...resident_data[0] };
+    temp["document_data"] = { ...document_data[0] };
+    console.log(`DEBUG: pushing ${JSON.stringify(temp)}`);
+    data.push(temp);
+  }
+  console.log(`DEBUG: data after the loop ${JSON.stringify(data)}`);
   if (!appointments.length) {
     return res
       .status(404)
@@ -85,7 +103,7 @@ const appointment_list_controller = async (req: Request, res: Response) => {
   }
   return res.status(200).json({
     message: "Appoinments retrieved successfully.",
-    data: appointments,
+    data: data,
   });
 };
 
