@@ -14,6 +14,7 @@ import {
 } from "../../services/transaction_services";
 import { find_resident_by_id } from "../../services/resident_services";
 import { find_document_by_id } from "../../services/document_services";
+import { ObjectId } from "mongodb";
 /**
  * This controller is for handling user requested appointment
  * */
@@ -87,9 +88,14 @@ const appointment_list_controller = async (req: Request, res: Response) => {
   for (const e of appointments) {
     const temp: any = { ...e };
     const user_data = await find_user_by_id(e.user_id);
+    // BUG: weird by `e.document_id` is already of type `ObjectId`
+    // but i doesn't return any results unless i explictly convert it
+    const document_data = await find_document_by_id(
+      new ObjectId(e.document_id),
+    );
+    console.log(`DEBUG: document data ${JSON.stringify(document_data)}`);
     const { resident_data_id } = user_data[0];
     const resident_data = await find_resident_by_id(resident_data_id);
-    const document_data = await find_document_by_id(e.document_id);
     temp["user_data"] = { ...resident_data[0] };
     temp["document_data"] = { ...document_data[0] };
     console.log(`DEBUG: pushing ${JSON.stringify(temp)}`);
