@@ -39,7 +39,7 @@ const resident_find_controller = async (req: Request, res: Response) => {
   }
   return res
     .status(200)
-    .json({ message: "Resident found successfully", data: resident });
+    .json({ message: "Resident found successfully", data: resident[0] });
 };
 
 const resident_update_controller = async (req: Request, res: Response) => {
