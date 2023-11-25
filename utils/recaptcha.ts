@@ -1,10 +1,4 @@
-// Common properties for both success and failure responses
-interface CommonResponse {
-  success: boolean;
-}
-
-// Success response with additional properties
-interface SuccessResponse extends CommonResponse {
+interface SuccessResponse {
   success: true;
   challenge_ts: string;
   hostname: string;
@@ -12,13 +6,11 @@ interface SuccessResponse extends CommonResponse {
   action: string;
 }
 
-// Failure response with error codes
-interface FailureResponse extends CommonResponse {
+interface FailureResponse {
   success: false;
   "error-codes": string[];
 }
 
-// Combined type representing both success and failure scenarios
 type RecaptchaVerificationResponse = SuccessResponse | FailureResponse;
 
 const validate_recaptcha = async (
