@@ -20,14 +20,22 @@ const update_transaction_by_id = async (
     .collection("transactions")
     .updateOne({ _id: transaction_id }, { $set: { ...update } });
 };
+
 const get_all_transaction = async () => {
   const transactions: Collection<Transaction> =
     database.collection("transactions");
   return await transactions.find({}).toArray();
+};
+
+const delete_transaction_by_id = async (transaction_id: ObjectId) => {
+  const transactions: Collection<Transaction> =
+    database.collection("transactions");
+  return await transactions.deleteOne({ _id: transaction_id });
 };
 export {
   add_new_transaction,
   get_all_transaction,
   find_transaction_by_id,
   update_transaction_by_id,
+  delete_transaction_by_id,
 };

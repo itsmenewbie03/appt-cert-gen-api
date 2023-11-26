@@ -8,6 +8,7 @@ import {
 } from "../../models/Transaction";
 import {
   add_new_transaction,
+  delete_transaction_by_id,
   find_transaction_by_id,
   get_all_transaction,
   update_transaction_by_id,
@@ -18,7 +19,7 @@ import { ObjectId } from "mongodb";
 /**
  * This controller is for handling user requested appointment
  * */
-const create_appointment_controller = async (req: Request, res: Response) => {
+const appointment_create_controller = async (req: Request, res: Response) => {
   // HACK: the user_id won't be provided
   // we need to pull it from the email prop of access_token
 
@@ -149,9 +150,27 @@ const appointment_update_controller = async (req: Request, res: Response) => {
     .status(200)
     .json({ message: "Appointment status updated successfully." });
 };
+const appointment_delete_controller = async (req: Request, res: Response) => {
+  const { transaction_id } = req.body;
+  if (!transaction_id) {
+    return res.status(400).json({ message: "Missing required parameters." });
+  }
+  const validated_transaction_id = validate_object_id(transaction_id);
+  if (!validated_transaction_id.success) {
+    return res.status(400).json({ message: validated_transaction_id.message });
+  }
+  const delete_result = await delete_transaction_by_id(
+    validated_transaction_id.object_id,
+  );
+  if (!delete_result.acknowledged || !delete_result.deletedCount) {
+    return res.status(500).json({ message: "Failed to delete transaction." });
+  }
+  return res.status(200).json({ message: "Transaction deleted successfully." });
+};
 
 export {
-  create_appointment_controller,
+  appointment_create_controller,
   appointment_list_controller,
   appointment_update_controller,
+  appointment_delete_controller,
 };
