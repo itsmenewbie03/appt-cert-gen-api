@@ -5,11 +5,10 @@ import {
   get_all_resident,
   update_resident_by_id,
 } from "../../services/resident_services";
-import { ObjectId } from "mongodb";
 import { ResidentSchema } from "../../models/Resident";
 import { validate_object_id } from "../../utils/object_id_validator";
 
-const resident_list_controller = async (req: Request, res: Response) => {
+const resident_list_controller = async (_req: Request, res: Response) => {
   const residents = await get_all_resident();
   if (!residents.length) {
     return res
@@ -59,7 +58,7 @@ const resident_update_controller = async (req: Request, res: Response) => {
     return res.status(400).json({
       message: `The update data provided is not valid.`,
       cause: `${parsed_update.error.issues
-        .map((val, i) => `${val.path.join("|")}: ${val.message}`)
+        .map((val, _i) => `${val.path.join("|")}: ${val.message}`)
         .join("; ")}.`,
     });
   }

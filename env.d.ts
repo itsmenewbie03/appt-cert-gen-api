@@ -7,5 +7,6 @@ declare namespace NodeJS {
     GAUTH_CLIENT_ID: string;
     GAUTH_CLIENT_SECRET: string;
     RECAPTCHA_SECRET: string;
+    DROPBOX_ACCESS_TOKEN: string;
   }
 }

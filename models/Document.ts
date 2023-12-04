@@ -1,21 +1,25 @@
 import { ResidentSchema } from "./Resident";
 import { z } from "zod";
+const RequiredDataSchema = z.array(ResidentSchema.keyof());
 const FreeDocumentSchema = z.object({
   type: z.string(),
+  url: z.string().url(),
   requires_payment: z.literal(false),
-  required_data: z.array(ResidentSchema.keyof()),
+  required_data: RequiredDataSchema,
 });
 
 const PaidDocumentSchema = z.object({
   type: z.string(),
+  url: z.string().url(),
   requires_payment: z.literal(true),
-  required_data: z.array(ResidentSchema.keyof()),
+  required_data: RequiredDataSchema,
   or_number: z.string(),
 });
 
 const DocumentSchema = z.union([FreeDocumentSchema, PaidDocumentSchema]);
 type Document = z.infer<typeof DocumentSchema>;
-export { Document, DocumentSchema };
+export { Document, DocumentSchema, RequiredDataSchema };
+
 // NOTE: just gonna leave this here xD
 // interface FreeDocument {
 //   type: string;
