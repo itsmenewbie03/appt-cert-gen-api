@@ -176,3 +176,4 @@ test*
 *.sh
 todo.ts
 *.txt
+.accesstoken

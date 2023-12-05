@@ -1,25 +1,44 @@
 import { Dropbox } from "dropbox";
+import {
+  get_dropbox_access_token,
+  refresh_dropbox_access_token,
+} from "./dropbox";
 
-const upload = async (file_buffer: Buffer, file_name: string) => {
+const upload = async (
+  file_buffer: Buffer,
+  file_name: string,
+): Promise<string | null | undefined> => {
   try {
+    const access_token = await get_dropbox_access_token();
+    if (!access_token) {
+      console.log("Weird we didn't get an access_token.");
+      return null;
+    }
+
     const dbx = new Dropbox({
-      accessToken: Bun.env.DROPBOX_ACCESS_TOKEN,
+      accessToken: access_token,
       fetch: fetch,
     });
 
-    const response = await dbx.filesUpload({
+    const resp = await dbx.filesUpload({
       path: "/TEMPLATES/" + file_name,
       contents: file_buffer,
       mode: { ".tag": "overwrite" },
     });
 
-    const path_to_file = response.result.path_display;
+    const path_to_file = resp.result.path_display;
     console.log(`File uploaded successfully. Shared link: ${path_to_file}`);
     return path_to_file;
   } catch (error: any) {
-    console.error(
-      `Error uploading to Dropbox: ${error}\nERROR: ${error.message}`,
-    );
+    if (/40[01]/.test(error.message)) {
+      // HACK: i'm gonna do this recursively coz why not xD
+      console.log(`We got ${error.message} on uploading, but we got this xD`);
+      const new_access_token = await refresh_dropbox_access_token();
+      if (!new_access_token) {
+        return null;
+      }
+      return await upload(file_buffer, file_name);
+    }
     return null;
   }
 };
@@ -40,8 +59,13 @@ const download = async (
   file_name: string,
 ): Promise<{ fileBinary: ArrayBuffer; name: string } | null> => {
   try {
+    const access_token = await get_dropbox_access_token();
+    if (!access_token) {
+      console.log("Weird we didn't get an access_token.");
+      return null;
+    }
     const dbx = new Dropbox({
-      accessToken: Bun.env.DROPBOX_ACCESS_TOKEN,
+      accessToken: access_token,
       fetch: custom_fetch,
     });
     const response = await dbx.filesDownload({
@@ -50,9 +74,19 @@ const download = async (
     //@ts-ignore
     const { fileBinary, name } = response.result;
     return { fileBinary, name };
-  } catch (error) {
+  } catch (error: any) {
+    if (/40[01]/.test(error.message)) {
+      // HACK: i'm gonna do this recursively coz why not xD
+      console.log(`We got ${error.message} on downloading, but we got this xD`);
+      const new_access_token = await refresh_dropbox_access_token();
+      if (!new_access_token) {
+        return null;
+      }
+      return await download(file_name);
+    }
     console.error(`Error retrieving file from Dropbox: ${error}`);
     return null;
   }
 };
+
 export { upload, download };
