@@ -1,5 +1,4 @@
 import { Dropbox } from "dropbox";
-import fs from "fs";
 
 const upload = async (file_buffer: Buffer, file_name: string) => {
   try {
@@ -9,7 +8,7 @@ const upload = async (file_buffer: Buffer, file_name: string) => {
     });
 
     const response = await dbx.filesUpload({
-      path: "/" + file_name,
+      path: "/TEMPLATES/" + file_name,
       contents: file_buffer,
       mode: { ".tag": "overwrite" },
     });
@@ -38,14 +37,16 @@ const custom_fetch = async (
 };
 
 const download = async (
-  file_path: string,
+  file_name: string,
 ): Promise<{ fileBinary: ArrayBuffer; name: string } | null> => {
   try {
     const dbx = new Dropbox({
       accessToken: Bun.env.DROPBOX_ACCESS_TOKEN,
       fetch: custom_fetch,
     });
-    const response = await dbx.filesDownload({ path: file_path });
+    const response = await dbx.filesDownload({
+      path: `/TEMPLATES/${file_name}`,
+    });
     //@ts-ignore
     const { fileBinary, name } = response.result;
     return { fileBinary, name };

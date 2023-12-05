@@ -1,7 +1,11 @@
 import type { Request, Response } from "express";
-import { get_all_documents } from "../../services/document_services";
+import {
+  add_new_document,
+  get_all_documents,
+} from "../../services/document_services";
 import { validate_document_template } from "../../utils/document_template_validator";
-import { RequiredDataSchema } from "../../models/Document";
+import { Document, RequiredDataSchema } from "../../models/Document";
+import { upload } from "../../utils/file_host";
 
 const document_list_controller = async (req: Request, res: Response) => {
   const documents = await get_all_documents();
@@ -49,9 +53,33 @@ const document_create_controller = async (req: Request, res: Response) => {
     });
   }
   // INFO: we can now upload the file to the file hosting and add a new `document` to the `documents` collections
-
-  console.log("YAY we GOT:", JSON.stringify(body));
-  return res.status(200).json(body);
+  // NOTE: this automatically sets the file extension to .docx if this causes trouble then we fix thix in producion xD
+  const file_name = `${document_name.replace(/\s+/g, "_")}.docx`;
+  console.log(`FILENAME FOR UPLOAD: ${file_name}`);
+  const file_path = await upload(template_buffer, file_name);
+  if (!file_path) {
+    return res.status(500).json({
+      message:
+        "There was a problem trying to upload the template to the storage. Please try again later or contact the technical team.",
+    });
+  }
+  // INFO: uploading the document to the database
+  const document_data: Document = {
+    type: document_name as string,
+    requires_payment: document_type === "paid",
+    required_data: required_data_validation.data,
+    file_path: file_path,
+  };
+  const insert_result = await add_new_document(document_data);
+  if (!insert_result.acknowledged || !insert_result.insertedId) {
+    return res.status(500).json({
+      message:
+        "There was a problem trying to upload to the database. Please try again later or contact the technical team.",
+    });
+  }
+  return res
+    .status(200)
+    .json({ message: "Document template addedd successfully." });
 };
 
 export { document_list_controller, document_create_controller };

@@ -3,21 +3,22 @@ import { z } from "zod";
 const RequiredDataSchema = z.array(ResidentSchema.keyof());
 const FreeDocumentSchema = z.object({
   type: z.string(),
-  url: z.string().url(),
+  file_path: z.string(),
   requires_payment: z.literal(false),
   required_data: RequiredDataSchema,
 });
 
 const PaidDocumentSchema = z.object({
   type: z.string(),
-  url: z.string().url(),
+  file_path: z.string(),
   requires_payment: z.literal(true),
   required_data: RequiredDataSchema,
-  or_number: z.string(),
+  or_number: z.optional(z.string()),
 });
 
 const DocumentSchema = z.union([FreeDocumentSchema, PaidDocumentSchema]);
 type Document = z.infer<typeof DocumentSchema>;
+
 export { Document, DocumentSchema, RequiredDataSchema };
 
 // NOTE: just gonna leave this here xD
