@@ -67,7 +67,7 @@ const appointment_create_controller = async (req: Request, res: Response) => {
   const appointment_data: Transaction = {
     status: "pending",
     user_id: user_id,
-    document_id: document_id,
+    document_id: validated_document_id.object_id,
     ...parsed_appointment_data.data,
   };
   const result = await add_new_transaction(appointment_data);
