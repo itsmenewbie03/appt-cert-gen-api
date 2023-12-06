@@ -12,7 +12,7 @@ document_router.use(json({ limit: "5mb" }));
 document_router.get("/list", auth, document_list_controller);
 document_router.post(
   "/create",
-  // privileged_user_auth,
+  privileged_user_auth,
   document_create_controller,
 );
 
