@@ -69,7 +69,7 @@ const download = async (
       fetch: custom_fetch,
     });
     const response = await dbx.filesDownload({
-      path: `/TEMPLATES/${file_name}`,
+      path: `${file_name}`,
     });
     //@ts-ignore
     const { fileBinary, name } = response.result;
