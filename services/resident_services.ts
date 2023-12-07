@@ -21,6 +21,9 @@ const find_resident_by_user_id = async (user_id: ObjectId) => {
     return [];
   }
   const { resident_data_id } = users[0];
+  if (!resident_data_id) {
+    return [];
+  }
   const residents: Collection<ResidentData> = database.collection("residents");
   return residents.find({ _id: resident_data_id }).toArray();
 };

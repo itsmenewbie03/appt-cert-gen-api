@@ -16,15 +16,15 @@ const ResidentSchema = z.object({
   period_of_residency: z.string(),
   phone_number: z.string(),
 });
-// interface ResidentData {
-//     first_name: string;
-//     middle_name?: string;
-//     last_name: string;
-//     name_suffix?: string;
-//     gender: Gender;
-//     date_of_birth: Date;
-//     period_of_residency: string;
-//     phone_number: string;
-// }
+const ResidentSchemaExtended = ResidentSchema.extend({
+  or_number: z.optional(z.string()),
+});
+
 type ResidentData = z.infer<typeof ResidentSchema>;
-export { ResidentData, ResidentSchema };
+type ResidentDataExtended = z.infer<typeof ResidentSchemaExtended>;
+export {
+  ResidentData,
+  ResidentSchema,
+  ResidentSchemaExtended,
+  ResidentDataExtended,
+};

@@ -1,5 +1,5 @@
 import { createReport } from "docx-templates";
-import { ResidentData } from "../models/Resident";
+import { ResidentData, ResidentDataExtended } from "../models/Resident";
 /**
  * This functions throws an error when the data provided does not fulfill all the fields in the template, but extra datas are fine.
  **/
@@ -26,6 +26,7 @@ const generate_template_data = (
 ) => {
   return required_data.reduce(
     (result: { [key: string]: any }, prop: keyof ResidentData) => {
+      // INFO: check if a key in required_data exists in data
       if (data.hasOwnProperty(prop)) {
         result[prop] = data[prop];
       }

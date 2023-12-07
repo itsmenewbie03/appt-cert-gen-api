@@ -14,6 +14,7 @@ import {
   generate_template_data,
 } from "../../utils/document_generator";
 import { validate_object_id } from "../../utils/object_id_validator";
+import { ResidentData, ResidentDataExtended } from "../../models/Resident";
 
 const document_list_controller = async (req: Request, res: Response) => {
   const documents = await get_all_documents();
@@ -27,10 +28,6 @@ const document_list_controller = async (req: Request, res: Response) => {
     .json({ message: "Documents retrieved successfully", data: documents });
 };
 
-// FIX: this endpoint is kinda problematic, tho the issue could be fixed in the frontend
-// the issue is when the user provides a paid document template and don't explicitly require the or_number data
-// also when they don't add the or_number field to the template document
-// why are the users always dumb? xD
 const document_create_controller = async (req: Request, res: Response) => {
   const body = req.body;
   const { file, required_data, document_name, document_type } = body;
@@ -128,7 +125,7 @@ const document_generate_controller = async (req: Request, res: Response) => {
   if (!validate_document_id.success) {
     return res.status(400).json({ message: validate_document_id.message });
   }
-  // INFO: fetch the users resident now
+  // INFO: fetch the users resident data now
   const resident_data = await find_resident_by_user_id(
     validate_user_id.object_id,
   );
@@ -152,10 +149,15 @@ const document_generate_controller = async (req: Request, res: Response) => {
   // INFO: now we generate the certificate
   const { file_path, required_data, requires_payment } = document_data[0];
   const _resident_data = resident_data[0];
+
+  // HACK: We need to do this because we explicityly add the or_number prop to the template data later on if the document is paid
+  // This is done because the or_number can't be stored in the resident data as it is generated after you complete the payment
+  const _required_data = required_data as (keyof ResidentData)[];
+
   // INFO: prepare the data to insert in the template
   const document_template_data = generate_template_data(
     _resident_data,
-    required_data,
+    _required_data,
   );
   // INFO: validate if the output data is not an emtpy object
   if (!Object.keys(document_template_data)) {

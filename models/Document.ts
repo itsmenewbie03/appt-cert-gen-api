@@ -1,8 +1,7 @@
-import { ResidentSchema } from "./Resident";
+import { ResidentSchemaExtended } from "./Resident";
 import { z } from "zod";
 
 // INFO: I'm out of ways to I'm doing this xD
-const ResidentSchemaExtended = ResidentSchema.extend({ or_number: z.string() });
 const RequiredDataSchema = z.array(ResidentSchemaExtended.keyof());
 
 const FreeDocumentSchema = z.object({
