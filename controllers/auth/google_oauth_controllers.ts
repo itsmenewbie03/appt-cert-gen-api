@@ -40,8 +40,8 @@ const google_oauth_bind_controller = async (req: Request, res: Response) => {
       role == "admin"
         ? find_admin_by
         : role == "employee"
-        ? find_employee_by
-        : find_user_by;
+          ? find_employee_by
+          : find_user_by;
     const user = await find({ email });
     // this would be weird if this happens
     if (user.length < 0) {
@@ -57,8 +57,8 @@ const google_oauth_bind_controller = async (req: Request, res: Response) => {
       role == "admin"
         ? update_admin_by
         : role == "employee"
-        ? update_employee_by
-        : update_user_by;
+          ? update_employee_by
+          : update_user_by;
 
     const update_result = await update(
       { email },
@@ -105,8 +105,8 @@ const google_oauth_login_controller = async (req: Request, res: Response) => {
       _role == "admin"
         ? find_admin_by
         : _role == "employee"
-        ? find_employee_by
-        : find_user_by;
+          ? find_employee_by
+          : find_user_by;
 
     const user = await find({ google_account_id: id });
     if (!user.length) {
