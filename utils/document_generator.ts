@@ -1,5 +1,8 @@
 import { createReport } from "docx-templates";
 import { ResidentData } from "../models/Resident";
+/**
+ * This functions throws an error when the data provided does not fulfill all the fields in the template, but extra datas are fine.
+ **/
 const generate_document = async (
   template: Buffer,
   data: Partial<ResidentData> & { or_number?: string },

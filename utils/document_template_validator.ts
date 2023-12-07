@@ -12,13 +12,33 @@ const is_equal_arrays = (arr1: string[], arr2: string[]) => {
   }
   return true;
 };
+
+interface ValidateDocumentTemplate {
+  success: boolean;
+  message: string;
+}
 const validate_document_template = async (
   file: Buffer,
   required_data: string[],
-) => {
+  is_paid: boolean = false,
+): Promise<ValidateDocumentTemplate> => {
   const commands = await listCommands(file, ["{", "}"]);
   const commands_code = commands.map((item) => item.code);
   const commands_code_set = [...new Set(commands_code)];
-  return is_equal_arrays(commands_code_set, required_data);
+  // PERF: explicitly check for or_number on the template is the document is paid
+  if (is_paid && !commands_code_set.includes("or_number")) {
+    return {
+      success: false,
+      message: "The field or_number is required for a paid document.",
+    };
+  }
+  const matched = is_equal_arrays(commands_code_set, required_data);
+  if (!matched) {
+    return {
+      success: false,
+      message: "The template does not match the required data",
+    };
+  }
+  return { success: true, message: "The template is valid" };
 };
 export { validate_document_template };

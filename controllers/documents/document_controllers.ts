@@ -29,7 +29,7 @@ const document_list_controller = async (req: Request, res: Response) => {
 
 // FIX: this endpoint is kinda problematic, tho the issue could be fixed in the frontend
 // the issue is when the user provides a paid document template and don't explicitly require the or_number data
-// also when they don't add the field to the template document
+// also when they don't add the or_number field to the template document
 // why are the users always dumb? xD
 const document_create_controller = async (req: Request, res: Response) => {
   const body = req.body;
@@ -37,9 +37,17 @@ const document_create_controller = async (req: Request, res: Response) => {
   if (!file || !required_data || !document_name || !document_type) {
     return res.status(400).json({ message: "Missing required parameters." });
   }
+  // INFO: handle paid document
+  const is_paid = document_type === "paid";
+  if (is_paid && !required_data.includes("or_number")) {
+    return res.status(400).json({
+      message:
+        "The document is a paid document, but or_number is not present in required_data.",
+    });
+  }
   // INFO: we now parse the file
   const template_buffer = Buffer.from(file, "base64");
-  // INFO: validate the `required_data` prop
+  // INFO: validate the `required_data` prop but make it allow or_number to handle paid documents
   const required_data_validation = RequiredDataSchema.safeParse(required_data);
   console.log(
     `WE GOT: required_data ${required_data} and the validation returns ${required_data_validation}`,
@@ -57,11 +65,11 @@ const document_create_controller = async (req: Request, res: Response) => {
   const valid_template = await validate_document_template(
     template_buffer,
     required_data_validation.data,
+    is_paid,
   );
-  if (!valid_template) {
+  if (!valid_template.success) {
     return res.status(400).json({
-      message:
-        "The document template provided does not match with the required_data provided.",
+      message: valid_template.message,
     });
   }
   // INFO: we can now upload the file to the file hosting and add a new `document` to the `documents` collections
@@ -78,7 +86,7 @@ const document_create_controller = async (req: Request, res: Response) => {
   // INFO: uploading the document to the database
   const document_data: Document = {
     type: document_name as string,
-    requires_payment: document_type === "paid",
+    requires_payment: is_paid,
     required_data: required_data_validation.data,
     file_path: file_path,
   };
