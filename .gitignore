@@ -177,3 +177,4 @@ test*
 todo.ts
 *.txt
 .accesstoken
+bun.lockb
