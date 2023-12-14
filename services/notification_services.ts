@@ -3,7 +3,7 @@ import { Transaction } from "../models/Transaction";
 import { find_user_by_id } from "./user_services";
 import { Notification } from "../models/Notification";
 import { find_document_by_id } from "./document_services";
-import { Collection } from "mongodb";
+import { Collection, ObjectId } from "mongodb";
 
 const add_new_notification = async (transaction_data: Transaction) => {
   // TODO: get email from user_id and return [] if no users is found
@@ -49,4 +49,33 @@ const get_all_notifications = async (user_email: string) => {
     .toArray();
 };
 
-export { add_new_notification, get_all_notifications };
+const mark_notification_as_read = async (
+  notification_id: ObjectId,
+): Promise<{ success: boolean; message: string }> => {
+  const notifications: Collection<Notification> =
+    database.collection("notifications");
+  const notification = await notifications
+    .find({ _id: notification_id })
+    .toArray();
+  if (!notification.length) {
+    return { success: false, message: "Notification not found" };
+  }
+  const { read } = notification[0];
+  if (read) {
+    return { success: false, message: "Notification is already read." };
+  }
+  const update_result = await notifications.updateOne(
+    { _id: notification_id },
+    { $set: { read: true } },
+  );
+  if (!update_result.acknowledged || !update_result.modifiedCount) {
+    return { success: false, message: "Failed to mark notification as read." };
+  }
+  return { success: true, message: "Notification is now marked read." };
+};
+
+export {
+  add_new_notification,
+  get_all_notifications,
+  mark_notification_as_read,
+};
