@@ -16,6 +16,8 @@ import {
 import { find_resident_by_id } from "../../services/resident_services";
 import { find_document_by_id } from "../../services/document_services";
 import { ObjectId } from "mongodb";
+import { add_new_notification } from "../../services/notification_services";
+
 /**
  * This controller is for handling user requested appointment
  * */
@@ -67,7 +69,8 @@ const appointment_create_controller = async (req: Request, res: Response) => {
   const appointment_data: Transaction = {
     status: "pending",
     user_id: user_id,
-    document_id: validated_document_id.object_id,
+    // NOTE: we explicitly set the type of object_id to ObjectId
+    document_id: new ObjectId(validated_document_id.object_id),
     ...parsed_appointment_data.data,
   };
   const result = await add_new_transaction(appointment_data);
@@ -79,6 +82,7 @@ const appointment_create_controller = async (req: Request, res: Response) => {
   }
   return res.status(200).json({ message: "Appointment created successfully." });
 };
+
 // BUG: this would be buggy but idc atm
 // this is very dirty code i hate to write it but i don't have a choice
 // gonna refactor soon xD
@@ -89,11 +93,7 @@ const appointment_list_controller = async (req: Request, res: Response) => {
   for (const e of appointments) {
     const temp: any = { ...e };
     const user_data = await find_user_by_id(e.user_id);
-    // BUG: weird by `e.document_id` is already of type `ObjectId`
-    // but i doesn't return any results unless i explictly convert it
-    const document_data = await find_document_by_id(
-      new ObjectId(e.document_id),
-    );
+    const document_data = await find_document_by_id(e.document_id);
     console.log(`DEBUG: document data ${JSON.stringify(document_data)}`);
     const { resident_data_id } = user_data[0];
     const resident_data = await find_resident_by_id(resident_data_id);
@@ -129,6 +129,8 @@ const appointment_update_controller = async (req: Request, res: Response) => {
       message: "No appoinment with the provided id is found on the database.",
     });
   }
+  // TODO: we gonna do the notification magic here xD
+  // we could pass the user_id to a function and the function handles all the magic
   const validated_status = TransactionStatusSchema.safeParse(status);
   if (!validated_status.success) {
     return res.status(400).json({
@@ -138,18 +140,35 @@ const appointment_update_controller = async (req: Request, res: Response) => {
         .join("; ")}.`,
     });
   }
+
+  // TODO: handle cases where the provided status is same as current status
+  if (validated_status.data === appointment[0].status) {
+    return res.status(400).json({
+      message: `The status provided is the same as the current status.`,
+    });
+  }
+
   const update_result = await update_transaction_by_id(validated_id.object_id, {
     status: validated_status.data,
   });
   if (!update_result.acknowledged || !update_result.modifiedCount) {
     return res
       .status(500)
-      .json({ message: "Failed to updated the appointment." });
+      .json({ message: "Failed to update the appointment. " });
   }
-  return res
-    .status(200)
-    .json({ message: "Appointment status updated successfully." });
+  // TODO: make a copy of `apppoinment` and change the sataus to the new statusA
+  const appointment_copy = { ...appointment[0] };
+  appointment_copy.status = validated_status.data;
+  const user_notification_result = await add_new_notification(appointment_copy);
+  return res.status(200).json({
+    message: `Appointment status updated successfully. ${
+      !user_notification_result
+        ? "However, user notification was not sent."
+        : "User notification was sent successfully."
+    }`,
+  });
 };
+
 const appointment_delete_controller = async (req: Request, res: Response) => {
   const { transaction_id } = req.body;
   if (!transaction_id) {

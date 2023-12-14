@@ -178,3 +178,4 @@ todo.ts
 *.txt
 .accesstoken
 bun.lockb
+refresh_token_gen.ts

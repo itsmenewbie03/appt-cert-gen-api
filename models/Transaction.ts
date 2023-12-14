@@ -6,7 +6,6 @@ const TransactionStatusSchema = z.enum([
   "rejected",
   "waiting for payment",
 ]);
-
 const TransactionSchema = z.object({
   status: TransactionStatusSchema,
   document_id: z.instanceof(ObjectId),
