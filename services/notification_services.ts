@@ -3,6 +3,7 @@ import { Transaction } from "../models/Transaction";
 import { find_user_by_id } from "./user_services";
 import { Notification } from "../models/Notification";
 import { find_document_by_id } from "./document_services";
+import { Collection } from "mongodb";
 
 const add_new_notification = async (transaction_data: Transaction) => {
   // TODO: get email from user_id and return [] if no users is found
@@ -37,4 +38,15 @@ const add_new_notification = async (transaction_data: Transaction) => {
     .insertOne(notification_data);
 };
 
-export { add_new_notification };
+const get_all_notifications = async (user_email: string) => {
+  const notifications: Collection<Notification> =
+    database.collection("notifications");
+  // NOTE: we will return the notifications in descending order
+  // based on the timestamp
+  return await notifications
+    .find({ user_email })
+    .sort({ timestamp: -1 })
+    .toArray();
+};
+
+export { add_new_notification, get_all_notifications };

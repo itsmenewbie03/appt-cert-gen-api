@@ -13,6 +13,7 @@ import transaction_router from "./routes/transactions/transaction";
 import user_registration_router from "./routes/registration/user";
 import pending_user_router from "./routes/registration/pending_user";
 import user_data_router from "./routes/data/user";
+import notifications_router from "./routes/notifications/notification";
 
 const PORT = process.env.PORT || 3000;
 const app = express();
@@ -31,5 +32,6 @@ app.use("/api/documents", document_router);
 app.use("/api/transactions", transaction_router);
 app.use("/api/user", user_registration_router);
 app.use("/api/user/pending", pending_user_router);
+app.use("/api/user/notifications", notifications_router);
 
 app.listen(PORT, () => console.log(`App is alive at http://localhost:${PORT}`));
