@@ -1,11 +1,13 @@
 import { ObjectId } from "mongodb";
 import { z } from "zod";
+
 const TransactionStatusSchema = z.enum([
   "completed",
   "pending",
   "rejected",
   "waiting for payment",
 ]);
+
 const TransactionSchema = z.object({
   status: TransactionStatusSchema,
   document_id: z.instanceof(ObjectId),

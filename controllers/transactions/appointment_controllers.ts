@@ -161,11 +161,10 @@ const appointment_update_controller = async (req: Request, res: Response) => {
   appointment_copy.status = validated_status.data;
   const user_notification_result = await add_new_notification(appointment_copy);
   return res.status(200).json({
-    message: `Appointment status updated successfully. ${
-      !user_notification_result
+    message: `Appointment status updated successfully. ${!user_notification_result
         ? "However, user notification was not sent."
         : "User notification was sent successfully."
-    }`,
+      }`,
   });
 };
 
@@ -186,6 +185,7 @@ const appointment_delete_controller = async (req: Request, res: Response) => {
   }
   return res.status(200).json({ message: "Transaction deleted successfully." });
 };
+// INFO: this endpoint will take a lot of param because fo the nature of the endpoint
 
 export {
   appointment_create_controller,

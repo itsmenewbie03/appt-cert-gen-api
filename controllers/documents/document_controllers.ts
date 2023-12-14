@@ -14,7 +14,7 @@ import {
   generate_template_data,
 } from "../../utils/document_generator";
 import { validate_object_id } from "../../utils/object_id_validator";
-import { ResidentData, ResidentDataExtended } from "../../models/Resident";
+import { ResidentData, ResidentSchema } from "../../models/Resident";
 
 const document_list_controller = async (req: Request, res: Response) => {
   const documents = await get_all_documents();
@@ -98,6 +98,7 @@ const document_create_controller = async (req: Request, res: Response) => {
     .status(200)
     .json({ message: "Document template addedd successfully." });
 };
+
 // NOTE: PLEASE REVIEW THIS
 const document_generate_controller = async (req: Request, res: Response) => {
   // TODO: take an Object of type Transaction
@@ -199,8 +200,93 @@ const document_generate_controller = async (req: Request, res: Response) => {
     document: result.toString("base64"),
   });
 };
+
+const walk_in_document_generate_controller = async (
+  req: Request,
+  res: Response,
+) => {
+  // INFO: Validate the document_id provied
+  const { document_id, resident_data, or_number } = req.body;
+  if (!document_id) {
+    return res
+      .status(400)
+      .json({ message: "Please provide all the required data." });
+  }
+  const validated_document_id = validate_object_id(document_id);
+  if (!validated_document_id.success) {
+    return res.status(400).json({ message: validated_document_id.message });
+  }
+  // INFO: validate resident_data
+  const parsed_resident_data = ResidentSchema.strip().safeParse(resident_data);
+  if (!parsed_resident_data.success) {
+    return res.status(400).json({
+      message: `The resident data provided is not valid.`,
+      cause: `${parsed_resident_data.error.issues
+        .map((val, i) => `${val.path.join("|")}: ${val.message}`)
+        .join("; ")}.`,
+    });
+  }
+  // INFO: fetch the document data
+  const document_data = await find_document_by_id(
+    validated_document_id.object_id,
+  );
+  if (!document_data.length) {
+    return res.status(400).json({
+      message:
+        "The provided document_id does not match to any document data in the database.",
+    });
+  }
+  // INFO: check if the document is a paid document
+  if (document_data[0].requires_payment && !or_number) {
+    return res.status(400).json({
+      message:
+        "The document requested is a paid document but no or_number is provided.",
+    });
+  }
+  // INFO: we generate the template data
+  const template_data = generate_template_data(
+    parsed_resident_data.data,
+    document_data[0].required_data as (keyof ResidentData)[],
+  );
+
+  // INFO: validate if the output data is not an emtpy object
+  if (!Object.keys(template_data)) {
+    return res.status(400).json({
+      message:
+        "An emtpy object was returned after preparing the data to insert in the template, This is weird call IT team.",
+    });
+  }
+  // INFO: handle paid document
+  if (document_data[0].requires_payment) {
+    // INFO: append the or_number prop to template data
+    template_data.or_number = or_number;
+  }
+  // INFO: now we fetch the template buffer
+  const template_buffer = await download(document_data[0].file_path);
+  if (!template_buffer) {
+    return res.status(400).json({
+      message: "Failed to retrieve the template from the file hosting service.",
+    });
+  }
+  // INFO: now we generate the document
+  const result = await generate_document(
+    Buffer.from(template_buffer.fileBinary),
+    template_data,
+  );
+  if (!result) {
+    return res.status(500).json({
+      message:
+        "The server encountered and error while trying to generate document.",
+    });
+  }
+  return res.status(200).json({
+    message: "Document generated successfully.",
+    document: result.toString("base64"),
+  });
+};
 export {
   document_list_controller,
   document_create_controller,
   document_generate_controller,
+  walk_in_document_generate_controller,
 };
