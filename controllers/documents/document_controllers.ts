@@ -29,17 +29,24 @@ const document_list_controller = async (req: Request, res: Response) => {
 };
 
 const document_create_controller = async (req: Request, res: Response) => {
-  const body = req.body;
-  const { file, required_data, document_name, document_type } = body;
+  const { file, required_data, document_name, document_type, price } = req.body;
   if (!file || !required_data || !document_name || !document_type) {
     return res.status(400).json({ message: "Missing required parameters." });
   }
+
   // INFO: handle paid document
   const is_paid = document_type === "paid";
   if (is_paid && !required_data.includes("or_number")) {
     return res.status(400).json({
       message:
         "The document is a paid document, but or_number is not present in required_data.",
+    });
+  }
+  // INFO: handle paid document but no price provided
+  if (is_paid && !price) {
+    return res.status(400).json({
+      message:
+        "The document is a paid document, but no price is provided in the request body.",
     });
   }
   // INFO: we now parse the file
@@ -80,13 +87,27 @@ const document_create_controller = async (req: Request, res: Response) => {
         "There was a problem trying to upload the template to the storage. Please try again later or contact the technical team.",
     });
   }
+
   // INFO: uploading the document to the database
-  const document_data: Document = {
-    type: document_name as string,
-    requires_payment: is_paid,
-    required_data: required_data_validation.data,
-    file_path: file_path,
-  };
+  // it's been a while since i wrote an else statement xD
+  let document_data: Document;
+  if (is_paid) {
+    document_data = {
+      type: document_name as string,
+      requires_payment: is_paid,
+      required_data: required_data_validation.data,
+      file_path: file_path,
+      price: price as number,
+    };
+  } else {
+    document_data = {
+      type: document_name as string,
+      requires_payment: is_paid,
+      required_data: required_data_validation.data,
+      file_path: file_path,
+    };
+  }
+
   const insert_result = await add_new_document(document_data);
   if (!insert_result.acknowledged || !insert_result.insertedId) {
     return res.status(500).json({

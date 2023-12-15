@@ -117,21 +117,23 @@ const appointment_list_controller = async (req: Request, res: Response) => {
 
 const appointment_update_controller = async (req: Request, res: Response) => {
   const { id, status } = req.body;
+
   if (!id || !status) {
     return res.status(400).json({ message: "Missing required parameters." });
   }
+
   const validated_id = validate_object_id(id);
   if (!validated_id.success) {
     return res.status(400).json({ message: validated_id.message });
   }
+
   const appointment = await find_transaction_by_id(validated_id.object_id);
   if (!appointment.length) {
     return res.status(404).json({
       message: "No appoinment with the provided id is found on the database.",
     });
   }
-  // TODO: we gonna do the notification magic here xD
-  // we could pass the user_id to a function and the function handles all the magic
+
   const validated_status = TransactionStatusSchema.safeParse(status);
   if (!validated_status.success) {
     return res.status(400).json({
@@ -152,12 +154,15 @@ const appointment_update_controller = async (req: Request, res: Response) => {
   const update_result = await update_transaction_by_id(validated_id.object_id, {
     status: validated_status.data,
   });
+
   if (!update_result.acknowledged || !update_result.modifiedCount) {
     return res
       .status(500)
       .json({ message: "Failed to update the appointment. " });
   }
-  // TODO: make a copy of `apppoinment` and change the sataus to the new statusA
+
+  // TODO: make a copy of `apppoinment` and change the sataus to the new status
+  // this is hacky xD
   const appointment_copy = { ...appointment[0] };
   appointment_copy.status = validated_status.data;
   const user_notification_result = await add_new_notification(appointment_copy);

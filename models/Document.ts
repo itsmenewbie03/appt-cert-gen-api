@@ -16,6 +16,7 @@ const PaidDocumentSchema = z.object({
   file_path: z.string(),
   requires_payment: z.literal(true),
   required_data: RequiredDataSchema,
+  price: z.number(),
   or_number: z.optional(z.string()),
 });
 

@@ -22,11 +22,19 @@ const add_new_notification = async (transaction_data: Transaction) => {
     console.log("no documents found");
     return false;
   }
-  const { type } = documents[0];
+  const { type, requires_payment } = documents[0];
   const document_status_message =
     status === "rejected" ? `has been ${status}` : `is now ${status}`;
-  const message = `Your request for ${type} ${document_status_message}.`;
 
+  let message = `Your request for ${type} ${document_status_message}.`;
+
+  // NOTE: this is kinda weird tbh, we are checking if the document is paid
+  // does waiting for payment means that the document is paid?
+  // anyways nvm xD
+  if (requires_payment && status === "waiting for payment") {
+    const { price } = documents[0];
+    message = `Your request for ${type} ${document_status_message}. Please prepare ${price} pesos for the payment.`;
+  }
   const notification_data: Notification = {
     user_email: email,
     message,
