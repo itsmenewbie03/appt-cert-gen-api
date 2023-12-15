@@ -92,7 +92,7 @@ const user_signup_controller = async (req: Request, res: Response) => {
     });
   }
   return res.status(200).json({
-    message: "User registered success and is now waiting for approval.",
+    message: "User registered successfully and is now waiting for approval.",
   });
 };
 
