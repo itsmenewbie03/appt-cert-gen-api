@@ -8,6 +8,7 @@ import {
   find_employee_by,
 } from "../../services/employee_services";
 import { Admin } from "../../models/Admin";
+import { is_valid_email } from "../../utils/email_validator";
 
 const employee_register_controller = async (req: Request, res: Response) => {
   const { email, password, info } = req.body;
@@ -15,6 +16,12 @@ const employee_register_controller = async (req: Request, res: Response) => {
     return res
       .status(400)
       .json({ message: "Invalid request, please use your brain." });
+  }
+
+  if (!(await is_valid_email(email))) {
+    return res.status(400).json({
+      message: "The email provided is not valid.",
+    });
   }
 
   const resident_validator = ResidentSchema.strip();

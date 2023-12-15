@@ -7,6 +7,7 @@ import { add_new_user, find_user_by } from "../../services/user_services";
 import { User } from "../../models/User";
 import { add_new_pending_resident } from "../../services/pending_resident_services";
 import { add_new_pending_user } from "../../services/pending_user_services";
+import { is_valid_email } from "../../utils/email_validator";
 
 // TODO: implement recaptcha if needed to avoid spam
 const user_signup_controller = async (req: Request, res: Response) => {
@@ -15,6 +16,12 @@ const user_signup_controller = async (req: Request, res: Response) => {
     return res
       .status(400)
       .json({ message: "Invalid request, please use your brain." });
+  }
+
+  if (!(await is_valid_email(email))) {
+    return res.status(400).json({
+      message: "The email provided is not a valid email.",
+    });
   }
 
   const resident_validator = ResidentSchema.strip();
@@ -98,10 +105,17 @@ const user_signup_controller = async (req: Request, res: Response) => {
 
 const user_register_controller = async (req: Request, res: Response) => {
   const { email, password, info } = req.body;
+
   if (!email || !password || !info) {
     return res
       .status(400)
       .json({ message: "Invalid request, please use your brain." });
+  }
+
+  if (!(await is_valid_email(email))) {
+    return res
+      .status(400)
+      .json({ message: "The email provided is not a valid email." });
   }
 
   const resident_validator = ResidentSchema.strip();
