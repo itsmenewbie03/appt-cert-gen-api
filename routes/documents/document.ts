@@ -1,6 +1,7 @@
 import { Router, json } from "express";
 import {
   document_create_controller,
+  document_delete_controller,
   document_generate_controller,
   document_list_controller,
   walk_in_document_generate_controller,
@@ -29,6 +30,12 @@ document_router.post(
   "/walkin/generate",
   privileged_user_auth,
   walk_in_document_generate_controller,
+);
+
+document_router.delete(
+  "/delete",
+  privileged_user_auth,
+  document_delete_controller,
 );
 
 export default document_router;

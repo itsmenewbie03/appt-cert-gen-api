@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import {
   add_new_document,
+  delete_document_by_id,
   find_document_by_id,
   get_all_documents,
 } from "../../services/document_services";
@@ -305,9 +306,29 @@ const walk_in_document_generate_controller = async (
     document: result.toString("base64"),
   });
 };
+
+const document_delete_controller = async (req: Request, res: Response) => {
+  const { document_id } = req.body;
+  if (!document_id) {
+    return res.status(400).json({ message: "Missing required parameters." });
+  }
+  const validated_document_id = validate_object_id(document_id);
+  if (!validated_document_id.success) {
+    return res.status(400).json({ message: validated_document_id.message });
+  }
+  const delete_result = await delete_document_by_id(
+    validated_document_id.object_id,
+  );
+  if (!delete_result.acknowledged || !delete_result.deletedCount) {
+    return res.status(500).json({ message: "Failed to delete document." });
+  }
+  return res.status(200).json({ message: "Document deleted successfully." });
+};
+
 export {
   document_list_controller,
   document_create_controller,
   document_generate_controller,
   walk_in_document_generate_controller,
+  document_delete_controller,
 };
