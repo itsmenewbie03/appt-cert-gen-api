@@ -5,6 +5,7 @@ import {
   appointment_update_controller,
   appointment_delete_controller,
   appointment_create_controller,
+  user_appointment_list_controller,
 } from "../../controllers/transactions/appointment_controllers";
 import { privileged_user_auth } from "../../middlewares/privileged_user_auth";
 const transaction_router = Router();
@@ -19,6 +20,9 @@ transaction_router.get(
   privileged_user_auth,
   appointment_list_controller,
 );
+
+// NOTE: this endpoint would be for users to retreive their personal appointments
+transaction_router.get("/user/list", auth, user_appointment_list_controller);
 
 transaction_router.patch(
   "/update",

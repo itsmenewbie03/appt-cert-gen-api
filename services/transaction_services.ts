@@ -12,6 +12,12 @@ const find_transaction_by_id = async (transaction_id: ObjectId) => {
   return await transactions.find({ _id: transaction_id }).toArray();
 };
 
+const find_user_transactions_by_user_id = async (user_id: ObjectId) => {
+  const transactions: Collection<Transaction> =
+    database.collection("transactions");
+  return await transactions.find({ user_id }).toArray();
+};
+
 const update_transaction_by_id = async (
   transaction_id: ObjectId,
   update: Partial<Transaction>,
@@ -38,4 +44,5 @@ export {
   find_transaction_by_id,
   update_transaction_by_id,
   delete_transaction_by_id,
+  find_user_transactions_by_user_id,
 };

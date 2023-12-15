@@ -10,6 +10,7 @@ import {
   add_new_transaction,
   delete_transaction_by_id,
   find_transaction_by_id,
+  find_user_transactions_by_user_id,
   get_all_transaction,
   update_transaction_by_id,
 } from "../../services/transaction_services";
@@ -161,10 +162,11 @@ const appointment_update_controller = async (req: Request, res: Response) => {
   appointment_copy.status = validated_status.data;
   const user_notification_result = await add_new_notification(appointment_copy);
   return res.status(200).json({
-    message: `Appointment status updated successfully. ${!user_notification_result
+    message: `Appointment status updated successfully. ${
+      !user_notification_result
         ? "However, user notification was not sent."
         : "User notification was sent successfully."
-      }`,
+    }`,
   });
 };
 
@@ -185,11 +187,58 @@ const appointment_delete_controller = async (req: Request, res: Response) => {
   }
   return res.status(200).json({ message: "Transaction deleted successfully." });
 };
-// INFO: this endpoint will take a lot of param because fo the nature of the endpoint
+
+const user_appointment_list_controller = async (
+  req: Request,
+  res: Response,
+) => {
+  // HACK: the user_id won't be provided
+
+  // INFO: fetch user_id from email
+  const email = req.headers["email"] as string;
+  const user = await find_user_by({ email });
+
+  // NOTE: this would be weird if this code executes
+  if (!user.length) {
+    return res
+      .status(404)
+      .json({ message: "The user is not found in the database" });
+  }
+  // INFO: we have access to user_id now
+  const { _id: user_id } = user[0];
+
+  const data: any[] = [];
+  const appointments = await find_user_transactions_by_user_id(user_id);
+
+  if (!appointments.length) {
+    return res
+      .status(404)
+      .json({ message: "The appointments database is currently empty." });
+  }
+
+  for (const e of appointments) {
+    const temp: any = { ...e };
+    const user_data = await find_user_by_id(e.user_id);
+    const document_data = await find_document_by_id(e.document_id);
+    console.log(`DEBUG: document data ${JSON.stringify(document_data)}`);
+    const { resident_data_id } = user_data[0];
+    const resident_data = await find_resident_by_id(resident_data_id);
+    temp["user_data"] = { ...resident_data[0] };
+    temp["document_data"] = { ...document_data[0] };
+    console.log(`DEBUG: pushing ${JSON.stringify(temp)}`);
+    data.push(temp);
+  }
+  console.log(`DEBUG: data after the loop ${JSON.stringify(data)}`);
+  return res.status(200).json({
+    message: "Appoinments retrieved successfully.",
+    data: data,
+  });
+};
 
 export {
   appointment_create_controller,
   appointment_list_controller,
   appointment_update_controller,
   appointment_delete_controller,
+  user_appointment_list_controller,
 };
