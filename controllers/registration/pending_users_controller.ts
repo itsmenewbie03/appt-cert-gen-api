@@ -115,4 +115,72 @@ const pending_user_approve_controller = async (req: Request, res: Response) => {
     .json({ message: "Pending user approved successfully." });
 };
 
-export { pending_user_list_controller, pending_user_approve_controller };
+const pending_user_reject_controller = async (req: Request, res: Response) => {
+  const { id } = req.body;
+  if (!id) {
+    return res
+      .status(400)
+      .json({ message: "Missing required parameter 'id'." });
+  }
+  const validated_id = validate_object_id(id);
+  if (!validated_id.success) {
+    return res.status(400).json({ message: validated_id.message });
+  }
+  const pending_user = await find_pending_user_by_id(validated_id.object_id);
+  if (!pending_user.length) {
+    return res.status(404).json({
+      message:
+        "No user with provided id is found in the pending user database.",
+    });
+  }
+  // NOTE: this will be a weird case but yeah trust issues xD
+  if (!pending_user[0].resident_data_id) {
+    return res.status(500).json({
+      message:
+        "This is weird, please report to the admin, the user data is missing the key to pending resident database",
+    });
+  }
+
+  const pending_resident_data = await find_pending_resident_by_id(
+    pending_user[0].resident_data_id,
+  );
+  // NOTE: again this will be another weird case xD
+  if (!pending_resident_data.length) {
+    return res.status(500).json({
+      message:
+        "This is weird, please report to the admin, the user data provided a key that does not correspond to any data in the resident database.",
+    });
+  }
+  // INFO: deleting the data stored in pending collection
+  const delete_pending_user_result = await delete_pending_user_by_id(
+    validated_id.object_id,
+  );
+  if (
+    !delete_pending_user_result.acknowledged ||
+    !delete_pending_user_result.deletedCount
+  ) {
+    return res.status(400).json({
+      message: "No user was deleted from the pending user database.",
+    });
+  }
+  const delete_pending_resident_result = await delete_pending_resident_by_id(
+    pending_user[0].resident_data_id,
+  );
+  if (
+    !delete_pending_resident_result.acknowledged ||
+    !delete_pending_resident_result.deletedCount
+  ) {
+    return res.status(400).json({
+      message: "No resident was deleted from the pending resident database.",
+    });
+  }
+  return res
+    .status(200)
+    .json({ message: "Pending user rejected successfully." });
+};
+
+export {
+  pending_user_list_controller,
+  pending_user_approve_controller,
+  pending_user_reject_controller,
+};
