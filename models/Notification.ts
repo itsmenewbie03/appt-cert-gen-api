@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 // NOTE: we are going to use user's email to as foregin key to the user collection
 const NotificationSchema = z.object({
   user_email: z.string(),

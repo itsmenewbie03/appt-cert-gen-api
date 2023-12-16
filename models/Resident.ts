@@ -1,4 +1,5 @@
 import z from "zod";
+
 const GenderSchema = z.union([
   z.literal("male"),
   z.literal("female"),
@@ -17,6 +18,7 @@ const ResidentSchema = z.object({
   period_of_residency: z.string(),
   phone_number: z.string(),
 });
+
 // NOTE: this is weird right?
 // but this is my codebase, so only my rules apply here xD
 const ResidentSchemaExtended = ResidentSchema.extend({
@@ -25,6 +27,7 @@ const ResidentSchemaExtended = ResidentSchema.extend({
 
 type ResidentData = z.infer<typeof ResidentSchema>;
 type ResidentDataExtended = z.infer<typeof ResidentSchemaExtended>;
+
 export {
   ResidentData,
   ResidentSchema,
