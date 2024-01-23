@@ -179,3 +179,4 @@ todo.ts
 .accesstoken
 bun.lockb
 refresh_token_gen.ts
+build/
