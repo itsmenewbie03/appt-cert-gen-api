@@ -14,6 +14,7 @@ import user_registration_router from "./routes/registration/user";
 import pending_user_router from "./routes/registration/pending_user";
 import user_data_router from "./routes/data/user";
 import notifications_router from "./routes/notifications/notification";
+import resident_registration_router from "./routes/registration/resident";
 
 const PORT = process.env.PORT || 6069;
 const app = express();
@@ -31,6 +32,7 @@ app.use("/api/data/user", user_data_router);
 app.use("/api/documents", document_router);
 app.use("/api/transactions", transaction_router);
 app.use("/api/user", user_registration_router);
+app.use("/api/resident", resident_registration_router);
 app.use("/api/user/pending", pending_user_router);
 app.use("/api/user/notifications", notifications_router);
 
