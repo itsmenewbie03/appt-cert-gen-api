@@ -91,10 +91,24 @@ const appointment_list_controller = async (req: Request, res: Response) => {
   const data: any[] = [];
   const appointments = await get_all_transaction();
 
+  // TODO: handle the case for walkin transaction
   for (const e of appointments) {
     const temp: any = { ...e };
-    const user_data = await find_user_by_id(e.user_id);
     const document_data = await find_document_by_id(e.document_id);
+    // NOTE: no user_id mean we are dealing with walkin transaction
+    if (!e?.user_id) {
+      console.log(`DEBUG: no user_id found (WalkInTransaction).`);
+      // we know what we are doing so we gonna use ts-ignore this
+      // @ts-ignore
+      const resident_data = await find_resident_by_id(e?.resident_id);
+      temp["user_data"] = { ...resident_data[0] };
+      temp["document_data"] = { ...document_data[0] };
+      console.log(`DEBUG: pushing ${JSON.stringify(temp)}`);
+      data.push(temp);
+      // NOTE: restart the loop
+      continue;
+    }
+    const user_data = await find_user_by_id(e.user_id);
     console.log(`DEBUG: document data ${JSON.stringify(document_data)}`);
     const { resident_data_id } = user_data[0];
     const resident_data = await find_resident_by_id(resident_data_id);
@@ -167,11 +181,10 @@ const appointment_update_controller = async (req: Request, res: Response) => {
   appointment_copy.status = validated_status.data;
   const user_notification_result = await add_new_notification(appointment_copy);
   return res.status(200).json({
-    message: `Appointment status updated successfully. ${
-      !user_notification_result
+    message: `Appointment status updated successfully. ${!user_notification_result
         ? "However, user notification was not sent."
         : "User notification was sent successfully."
-    }`,
+      }`,
   });
 };
 
