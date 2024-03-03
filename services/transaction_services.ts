@@ -1,8 +1,14 @@
 import { database } from "../db/mongo";
 import type { Collection, ObjectId } from "mongodb";
-import { Transaction } from "../models/Transaction";
+import { Transaction, WalkInTransaction } from "../models/Transaction";
 
 const add_new_transaction = async (transaction_data: Transaction) => {
+  return database.collection("transactions").insertOne(transaction_data);
+};
+
+const add_new_walkin_transaction = async (
+  transaction_data: WalkInTransaction,
+) => {
   return database.collection("transactions").insertOne(transaction_data);
 };
 
@@ -40,6 +46,7 @@ const delete_transaction_by_id = async (transaction_id: ObjectId) => {
 };
 export {
   add_new_transaction,
+  add_new_walkin_transaction,
   get_all_transaction,
   find_transaction_by_id,
   update_transaction_by_id,

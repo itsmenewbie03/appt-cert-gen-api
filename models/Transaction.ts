@@ -17,20 +17,22 @@ const TransactionSchema = z.object({
   remarks: z.string().optional(),
 });
 
+const WalkInTransactionSchema = z.object({
+  status: TransactionStatusSchema,
+  document_id: z.instanceof(ObjectId),
+  date: z.coerce.date(),
+  processed_by: z.instanceof(ObjectId).optional(),
+  remarks: z.string().optional(),
+  resident_id: z.instanceof(ObjectId),
+});
+
 type Transaction = z.infer<typeof TransactionSchema>;
-export { Transaction, TransactionSchema, TransactionStatusSchema };
-// type TransactionStatus =
-//   | "completed"
-//   | "pending"
-//   | "rejected"
-//   | "waiting for payment";
-// interface Transaction {
-//   status: TransactionStatus;
-//   document_id: ObjectId;
-//   user_id: ObjectId;
-//   date: Date;
-//   processed_by: ObjectId;
-//   remarks?: string;
-// }
-//
-// export type { Transaction };
+type WalkInTransaction = z.infer<typeof WalkInTransactionSchema>;
+
+export {
+  Transaction,
+  TransactionSchema,
+  TransactionStatusSchema,
+  WalkInTransaction,
+  WalkInTransactionSchema,
+};

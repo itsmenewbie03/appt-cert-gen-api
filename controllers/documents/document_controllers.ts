@@ -8,14 +8,18 @@ import {
 import { validate_document_template } from "../../utils/document_template_validator";
 import { Document, RequiredDataSchema } from "../../models/Document";
 import { download, upload } from "../../utils/file_host";
-import { TransactionSchema } from "../../models/Transaction";
-import { find_resident_by_user_id } from "../../services/resident_services";
+import { TransactionSchema, WalkInTransaction } from "../../models/Transaction";
+import {
+  add_new_resident,
+  find_resident_by_user_id,
+} from "../../services/resident_services";
 import {
   generate_document,
   generate_template_data,
 } from "../../utils/document_generator";
 import { validate_object_id } from "../../utils/object_id_validator";
 import { ResidentData, ResidentSchema } from "../../models/Resident";
+import { add_new_walkin_transaction } from "../../services/transaction_services";
 
 const document_list_controller = async (req: Request, res: Response) => {
   const documents = await get_all_documents();
@@ -248,6 +252,34 @@ const walk_in_document_generate_controller = async (
         .join("; ")}.`,
     });
   }
+  // HACK: save the resident to the resident database and record transaction
+  const save_resident = await add_new_resident(parsed_resident_data.data);
+  if (!save_resident.acknowledged || !save_resident.insertedId) {
+    return res.status(500).json({
+      message:
+        "There was a problem trying to save the resident data to the database. Please try again later or contact the technical team.",
+    });
+  }
+  const walkin_transaction_data: WalkInTransaction = {
+    status: "completed",
+    document_id: validated_document_id.object_id,
+    date: new Date(),
+    resident_id: save_resident.insertedId,
+  };
+
+  const record_walkin_transaction = await add_new_walkin_transaction(
+    walkin_transaction_data,
+  );
+  if (
+    !record_walkin_transaction.acknowledged ||
+    !record_walkin_transaction.insertedId
+  ) {
+    return res.status(500).json({
+      message:
+        "There was a problem trying to record the transaction to the database. Please try again later or contact the technical team.",
+    });
+  }
+
   // INFO: fetch the document data
   const document_data = await find_document_by_id(
     validated_document_id.object_id,
