@@ -87,6 +87,7 @@ const appointment_create_controller = async (req: Request, res: Response) => {
 // BUG: this would be buggy but idc atm
 // this is very dirty code i hate to write it but i don't have a choice
 // gonna refactor soon xD
+// ~ still not refactored xD
 const appointment_list_controller = async (req: Request, res: Response) => {
   const data: any[] = [];
   const appointments = await get_all_transaction();
