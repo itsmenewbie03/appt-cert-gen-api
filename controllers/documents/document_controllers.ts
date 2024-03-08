@@ -11,6 +11,7 @@ import { download, upload } from "../../utils/file_host";
 import { TransactionSchema, WalkInTransaction } from "../../models/Transaction";
 import {
   add_new_resident,
+  find_resident_by,
   find_resident_by_user_id,
 } from "../../services/resident_services";
 import {
@@ -20,6 +21,7 @@ import {
 import { validate_object_id } from "../../utils/object_id_validator";
 import { ResidentData, ResidentSchema } from "../../models/Resident";
 import { add_new_walkin_transaction } from "../../services/transaction_services";
+import { ObjectId } from "mongodb";
 
 const document_list_controller = async (req: Request, res: Response) => {
   const documents = await get_all_documents();
@@ -252,19 +254,35 @@ const walk_in_document_generate_controller = async (
         .join("; ")}.`,
     });
   }
-  // HACK: save the resident to the resident database and record transaction
-  const save_resident = await add_new_resident(parsed_resident_data.data);
-  if (!save_resident.acknowledged || !save_resident.insertedId) {
-    return res.status(500).json({
-      message:
-        "There was a problem trying to save the resident data to the database. Please try again later or contact the technical team.",
-    });
+  // INFO: since we are going to perform a hacky auto save we will perform a check on db first to existing resident
+  // this however will not be an issue if a feature in which an admin can fetch the info of resident from the db and
+  // handle their walk in request
+  const { first_name, last_name, date_of_birth } = parsed_resident_data.data;
+  const possible_match = await find_resident_by({
+    first_name,
+    last_name,
+    date_of_birth,
+  });
+
+  let resident_id: ObjectId = possible_match[0]._id;
+
+  // HACK: save the resident to the resident database and record transaction if no match is found
+  if (!possible_match.length) {
+    const save_resident = await add_new_resident(parsed_resident_data.data);
+    if (!save_resident.acknowledged || !save_resident.insertedId) {
+      return res.status(500).json({
+        message:
+          "There was a problem trying to save the resident data to the database. Please try again later or contact the technical team.",
+      });
+    }
+    resident_id = save_resident.insertedId;
   }
+
   const walkin_transaction_data: WalkInTransaction = {
     status: "completed",
     document_id: validated_document_id.object_id,
     date: new Date(),
-    resident_id: save_resident.insertedId,
+    resident_id: resident_id,
   };
 
   const record_walkin_transaction = await add_new_walkin_transaction(
