@@ -2,7 +2,10 @@ import type { Request, Response } from "express";
 import evaluate_password from "../../utils/password_validator";
 import { hash } from "../../utils/password_auth";
 import { ResidentSchema, ResidentData } from "../../models/Resident";
-import { add_new_resident } from "../../services/resident_services";
+import {
+  add_new_resident,
+  find_resident_by,
+} from "../../services/resident_services";
 import {
   add_new_employee,
   find_employee_by,
@@ -64,27 +67,38 @@ const employee_register_controller = async (req: Request, res: Response) => {
     console.log(`FAILED TO HASH\nERR: ${error.message}`);
   }
 
-  const add_new_resident_result = await add_new_resident(
-    resident_data_parsed.data,
-  );
+  // INFO: perform a check if the resident is already registered
+  const { first_name, last_name, date_of_birth } = resident_data_parsed.data;
+  const possible_match = await find_resident_by({
+    first_name,
+    last_name,
+    date_of_birth,
+  });
 
-  if (
-    !add_new_resident_result.acknowledged ||
-    !add_new_resident_result.insertedId
-  ) {
-    return res.status(500).json({
-      message: "Failed to insert resident's info to the database",
-    });
+  let resident_id = possible_match[0]?._id;
+
+  if (!possible_match.length) {
+    const add_new_resident_result = await add_new_resident(
+      resident_data_parsed.data,
+    );
+
+    if (
+      !add_new_resident_result.acknowledged ||
+      !add_new_resident_result.insertedId
+    ) {
+      return res.status(500).json({
+        message: "Failed to insert resident's info to the database",
+      });
+    }
+    resident_id = add_new_resident_result.insertedId;
   }
-
-  const resident_data_id = add_new_resident_result.insertedId;
-  console.log(`DEBUG: resident data added with id: ${resident_data_id}`);
 
   const employee_data: Admin = {
     email: email,
     password: await hash(password),
-    resident_data_id: resident_data_id,
+    resident_data_id: resident_id,
   };
+
   const result = await add_new_employee(employee_data);
   console.log(
     `DEBUG: the result after inserting new employee to db ${JSON.stringify(
