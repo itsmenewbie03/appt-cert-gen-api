@@ -1,6 +1,10 @@
 import type { Request, Response } from "express";
 import { ResidentSchema } from "../../models/Resident";
-import { add_new_resident } from "../../services/resident_services";
+import {
+  add_new_resident,
+  find_resident_by,
+  find_resident_by_id,
+} from "../../services/resident_services";
 
 const resident_register_controller = async (req: Request, res: Response) => {
   const { info } = req.body;
@@ -21,6 +25,17 @@ const resident_register_controller = async (req: Request, res: Response) => {
         .map((val, i) => `${val.path.join("|")}: ${val.message}`)
         .join("; ")}.`,
     });
+  }
+  const { first_name, last_name, date_of_birth } = resident_data_parsed.data;
+
+  const possible_match = await find_resident_by({
+    first_name,
+    last_name,
+    date_of_birth,
+  });
+
+  if (possible_match.length) {
+    return res.status(400).json({ message: "Resident already exists." });
   }
 
   const add_new_resident_result = await add_new_resident(

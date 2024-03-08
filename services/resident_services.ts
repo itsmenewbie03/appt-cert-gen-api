@@ -15,6 +15,11 @@ const find_resident_by_id = async (resident_id: ObjectId) => {
   return residents.find({ _id: resident_id }).toArray();
 };
 
+const find_resident_by = async (query: Partial<ResidentData>) => {
+  const residents: Collection<ResidentData> = database.collection("residents");
+  return residents.find({ ...query }).toArray();
+};
+
 const find_resident_by_user_id = async (user_id: ObjectId) => {
   const users = await find_user_by_id(user_id);
   if (!users.length) {
@@ -43,6 +48,7 @@ const delete_resident_by_id = async (resident_id: ObjectId) => {
 export {
   add_new_resident,
   get_all_resident,
+  find_resident_by,
   find_resident_by_id,
   find_resident_by_user_id,
   update_resident_by_id,
