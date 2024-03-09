@@ -12,6 +12,10 @@ import {
 } from "../../services/employee_services";
 import { Admin } from "../../models/Admin";
 import { is_valid_email } from "../../utils/email_validator";
+import {
+  duration_to_seconds,
+  get_age_in_seconds,
+} from "../../utils/date_utils";
 
 const employee_register_controller = async (req: Request, res: Response) => {
   const { email, password, info } = req.body;
@@ -78,10 +82,33 @@ const employee_register_controller = async (req: Request, res: Response) => {
   let resident_id = possible_match[0]?._id;
 
   if (!possible_match.length) {
+    // INFO: validate the dob if it is in the future
+    // INFO: validate the period of residency if is does not exceed the age of the resident
+
+    const { period_of_residency, date_of_birth } = resident_data_parsed.data;
+    if (date_of_birth > new Date(Date.now())) {
+      return res.status(400).json({
+        message: "The date of birth provided is in the future.",
+      });
+    }
+
+    const period_of_residency_in_sec = duration_to_seconds(period_of_residency);
+    if (period_of_residency_in_sec < 0) {
+      return res.status(400).json({
+        message: "Invalid period of residency.",
+      });
+    }
+
+    const age_in_seconds = get_age_in_seconds(date_of_birth);
+    if (age_in_seconds < period_of_residency_in_sec) {
+      return res.status(400).json({
+        message: "The period of residency exceeds the age of the resident.",
+      });
+    }
+
     const add_new_resident_result = await add_new_resident(
       resident_data_parsed.data,
     );
-
     if (
       !add_new_resident_result.acknowledged ||
       !add_new_resident_result.insertedId
