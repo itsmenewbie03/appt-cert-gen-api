@@ -22,6 +22,10 @@ import { validate_object_id } from "../../utils/object_id_validator";
 import { ResidentData, ResidentSchema } from "../../models/Resident";
 import { add_new_walkin_transaction } from "../../services/transaction_services";
 import { ObjectId } from "mongodb";
+import {
+  duration_to_seconds,
+  get_age_in_seconds,
+} from "../../utils/date_utils";
 
 const document_list_controller = async (req: Request, res: Response) => {
   const documents = await get_all_documents();
@@ -268,6 +272,25 @@ const walk_in_document_generate_controller = async (
 
   // HACK: save the resident to the resident database and record transaction if no match is found
   if (!possible_match.length) {
+    // INFO: validate dob against future date and period of residency
+    const { period_of_residency, date_of_birth } = parsed_resident_data.data;
+    if (date_of_birth > new Date(Date.now())) {
+      return res.status(400).json({
+        message: "The date of birth provided is in the future.",
+      });
+    }
+    const period_of_residency_in_sec = duration_to_seconds(period_of_residency);
+    if (period_of_residency_in_sec < 0) {
+      return res.status(400).json({
+        message: "Invalid period of residency.",
+      });
+    }
+    const age_in_seconds = get_age_in_seconds(date_of_birth);
+    if (age_in_seconds < period_of_residency_in_sec) {
+      return res.status(400).json({
+        message: "The period of residency exceeds the age of the resident.",
+      });
+    }
     const save_resident = await add_new_resident(parsed_resident_data.data);
     if (!save_resident.acknowledged || !save_resident.insertedId) {
       return res.status(500).json({
