@@ -222,9 +222,9 @@ const document_generate_controller = async (req: Request, res: Response) => {
     document_template_data,
   );
   if (!result) {
-    return res.status(400).json({
+    return res.status(500).json({
       message:
-        "The server encountered and error while trying to generate document.",
+        "The server encountered and error while trying to generate document. Please ensure to provide all the required data for the requested document.",
     });
   }
   return res.status(200).json({
@@ -268,7 +268,7 @@ const walk_in_document_generate_controller = async (
     date_of_birth,
   });
 
-  let resident_id: ObjectId = possible_match[0]._id;
+  let resident_id: ObjectId = possible_match?.[0]?._id;
 
   // HACK: save the resident to the resident database and record transaction if no match is found
   if (!possible_match.length) {
@@ -371,7 +371,7 @@ const walk_in_document_generate_controller = async (
   if (!result) {
     return res.status(500).json({
       message:
-        "The server encountered and error while trying to generate document.",
+        "The server encountered and error while trying to generate document. Please ensure to provide all the required data for the requested document.",
     });
   }
   return res.status(200).json({

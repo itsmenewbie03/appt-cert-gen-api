@@ -79,7 +79,7 @@ const employee_register_controller = async (req: Request, res: Response) => {
     date_of_birth,
   });
 
-  let resident_id = possible_match[0]?._id;
+  let resident_id = possible_match?.[0]?._id;
 
   if (!possible_match.length) {
     // INFO: validate the dob if it is in the future
