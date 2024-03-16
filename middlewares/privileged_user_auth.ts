@@ -45,6 +45,8 @@ const privileged_user_auth = async (
       message: "You need to be a privileged user to do this.",
     });
   }
+  req.headers["email"] = token_data.payload.email;
+  req.headers["role"] = token_data.payload.role;
   next();
 };
 export { privileged_user_auth };
