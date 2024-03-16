@@ -1,5 +1,4 @@
-import createReport from "docx-templates";
-import fs from "fs";
+import { createReport } from "docx-templates";
 import { ReportData } from "../models/ReportData";
 import { download } from "./file_host";
 const date_hack = (date: Date) => date.toISOString().split("T")[0];
