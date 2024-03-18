@@ -44,6 +44,14 @@ const document_create_controller = async (req: Request, res: Response) => {
   if (!file || !required_data || !document_name || !document_type) {
     return res.status(400).json({ message: "Missing required parameters." });
   }
+  // INFO: handly empty required_data
+  // This is a bit stict but there should be no need to generate a certificate
+  // in which no data is required
+  if (!required_data.length) {
+    return res
+      .status(400)
+      .json({ message: "The required_data should not be empty." });
+  }
 
   // INFO: handle paid document
   const is_paid = document_type === "paid";

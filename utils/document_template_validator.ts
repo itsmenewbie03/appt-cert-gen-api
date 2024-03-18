@@ -23,6 +23,12 @@ const validate_document_template = async (
   is_paid: boolean = false,
 ): Promise<ValidateDocumentTemplate> => {
   const commands = await listCommands(file, ["{", "}"]);
+  if (!commands.length) {
+    return {
+      success: false,
+      message: "The template does not contain any placeholders.",
+    };
+  }
   const commands_code = commands.map((item) => item.code);
   const commands_code_set = [...new Set(commands_code)];
   // PERF: explicitly check for or_number on the template is the document is paid
