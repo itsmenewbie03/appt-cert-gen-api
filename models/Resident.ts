@@ -23,6 +23,7 @@ const ResidentSchema = z.object({
 // but this is my codebase, so only my rules apply here xD
 const ResidentSchemaExtended = ResidentSchema.extend({
   or_number: z.optional(z.string()),
+  purpose: z.optional(z.string()),
 });
 
 type ResidentData = z.infer<typeof ResidentSchema>;

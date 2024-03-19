@@ -31,7 +31,7 @@ const validate_document_template = async (
   }
   const commands_code = commands.map((item) => item.code);
   const commands_code_set = [...new Set(commands_code)];
-  // PERF: explicitly check for or_number on the template is the document is paid
+  // PERF: explicitly check for or_number on the template if the document is paid
   if (is_paid && !commands_code_set.includes("or_number")) {
     return {
       success: false,

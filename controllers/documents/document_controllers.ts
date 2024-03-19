@@ -27,7 +27,7 @@ import {
   get_age_in_seconds,
 } from "../../utils/date_utils";
 
-const document_list_controller = async (req: Request, res: Response) => {
+const document_list_controller = async (_req: Request, res: Response) => {
   const documents = await get_all_documents();
   if (!documents.length) {
     return res
@@ -246,7 +246,7 @@ const walk_in_document_generate_controller = async (
   res: Response,
 ) => {
   // INFO: Validate the document_id provied
-  const { document_id, resident_data, or_number } = req.body;
+  const { document_id, resident_data, or_number, purpose } = req.body;
   if (!document_id) {
     return res
       .status(400)
@@ -262,7 +262,7 @@ const walk_in_document_generate_controller = async (
     return res.status(400).json({
       message: `The resident data provided is not valid.`,
       cause: `${parsed_resident_data.error.issues
-        .map((val, i) => `${val.path.join("|")}: ${val.message}`)
+        .map((val, _i) => `${val.path.join("|")}: ${val.message}`)
         .join("; ")}.`,
     });
   }
@@ -363,6 +363,10 @@ const walk_in_document_generate_controller = async (
   if (document_data[0].requires_payment) {
     // INFO: append the or_number prop to template data
     template_data.or_number = or_number;
+  }
+  // INFO: add the purpose if it exists
+  if (purpose) {
+    template_data.purpose = purpose;
   }
   // INFO: now we fetch the template buffer
   const template_buffer = await download(document_data[0].file_path);

@@ -5,7 +5,7 @@ import { ResidentData, ResidentDataExtended } from "../models/Resident";
  **/
 const generate_document = async (
   template: Buffer,
-  data: Partial<ResidentData> & { or_number?: string },
+  data: Partial<ResidentData> & { or_number?: string; purpose?: string },
 ) => {
   try {
     const result = await createReport({
