@@ -19,6 +19,7 @@
     "docx-templates": "^4.11.3",
     "dropbox": "^10.34.0",
     "express": "^4.18.2",
+    "firebase-admin": "^12.1.0",
     "jose": "^4.15.5",
     "mongodb": "^6.1.0",
     "password-validator": "^5.3.0",
