@@ -180,3 +180,4 @@ todo.ts
 bun.lockb
 refresh_token_gen.ts
 build/
+credentials/*.json
