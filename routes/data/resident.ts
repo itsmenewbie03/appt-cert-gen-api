@@ -25,4 +25,13 @@ resident_router.delete(
   resident_delete_controller,
 );
 
+// NOTE: this only to support android client
+// since overriding the method is too much
+// so the backend will compoenstate for it xD
+resident_router.post(
+  "/delete",
+  privileged_user_auth,
+  resident_delete_controller,
+);
+
 export default resident_router;
