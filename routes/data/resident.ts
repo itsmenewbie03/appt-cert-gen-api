@@ -19,6 +19,16 @@ resident_router.patch(
   privileged_user_auth,
   resident_update_controller,
 );
+
+// NOTE: this only to support android client
+// since overriding the method is too much
+// so the backend will compoenstate for it xD
+resident_router.post(
+  "/update",
+  privileged_user_auth,
+  resident_update_controller,
+);
+
 resident_router.delete(
   "/delete",
   privileged_user_auth,
