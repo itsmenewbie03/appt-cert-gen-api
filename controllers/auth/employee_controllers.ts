@@ -10,6 +10,9 @@ import { add_new_refresh_token } from '../../services/refresh_token_services';
 import { AdminSchema } from '../../models/Admin';
 import evaluate_password from '../../utils/password_validator';
 import { validate_recaptcha } from '../../utils/recaptcha';
+import { upload_image } from '../../utils/image_host';
+import { find_resident_by_id } from '../../services/resident_services';
+import { ObjectId } from 'mongodb';
 
 const employee_login_controller = async (req: Request, res: Response) => {
   const { email, password, recaptcha_token } = req.body;
@@ -102,7 +105,8 @@ const employee_update_controller = async (req: Request, res: Response) => {
   const employee = await find_employee_by({ ...query });
   if (!employee.length) {
     return res.status(404).json({
-      message: "Can't find employee based on the query provided.",
+      message:
+        "Can't find employee based on the query provided. If you are using firebase auth make sure the email is also registered in the web version.",
     });
   }
   // lets validate the update
@@ -198,9 +202,108 @@ const employee_change_password_controller = async (
   }
   return res.status(200).json({ message: 'Password successfully changed.' });
 };
+
+const employee_avatar_update_controller = async (
+  req: Request,
+  res: Response,
+) => {
+  const { base64_image } = req.body;
+  if (!base64_image) {
+    return res.status(400).json({
+      message: 'Please provide the query and update.',
+    });
+  }
+  // NOTE: this will be called after privileged_user_auth middleware
+  // so we will have the email in the headers
+  const email = req.headers['email'] as string;
+  const employee = await find_employee_by({ email: email });
+  if (!employee.length) {
+    return res.status(404).json({
+      message:
+        "Can't find employee based on the query provided. If you are using firebase auth make sure the email is also registered in the web version.",
+    });
+  }
+  // INFO: we will upload the base64_image and update the avatar url with the returned url
+  const image_buf = Buffer.from(base64_image, 'base64');
+  const url = await upload_image(image_buf);
+  if (!url) {
+    // NOTE: this should be 500 but we will instead blame the client by returning 400 xD
+    return res.status(400).json({ message: 'Failed to upload the image.' });
+  }
+  const update = { avatar: url };
+  const update_schema = AdminSchema.partial().strip();
+  const parsed_update = update_schema.safeParse(update);
+  if (!parsed_update.success) {
+    return res.status(400).json({
+      message: `The update data provided is not valid.`,
+      cause: `${parsed_update.error.issues
+        .map((val, i) => `${val.path.join('|')}: ${val.message}`)
+        .join('; ')}.`,
+    });
+  }
+  console.log(`Updating with ${JSON.stringify(parsed_update.data)}`);
+
+  // prevent password override
+  if (parsed_update.data.password) {
+    return res.status(403).json({
+      message: 'This is not the endpoint for changing password.',
+    });
+  }
+  const result = await update_employee_by(
+    { email: email },
+    { ...parsed_update.data },
+  );
+  if (!result.acknowledged || !result.modifiedCount) {
+    return res.status(400).json({
+      message: 'Failed to update the data in the database.',
+    });
+  }
+  return res
+    .status(200)
+    .json({ message: 'Employee avatar updated successfully.' });
+};
+
+const employee_data_controller = async (req: Request, res: Response) => {
+  // NOTE: this will be called after privileged_user_auth middleware
+  const email = req.headers['email'] as string;
+  const employee = await find_employee_by({ email });
+  if (!employee.length) {
+    return res.status(404).json({
+      message:
+        "Can't find employee based on the email in the header. If you are using firebase auth make sure the email is also registered in the web version.",
+    });
+  }
+  // INFO: fetch the resident info of the employee
+  const { resident_data_id } = employee[0];
+  if (!resident_data_id) {
+    return res.status(404).json({
+      message:
+        'No resident_id is found for this employee account. Ensure that employee accounts are registered using the web dashboard',
+    });
+  }
+  // INFO: fetch the resident data
+  // we will be defensive here, making sure that resident_data_id is of type ObjectId
+  const resident_data = await find_resident_by_id(
+    new ObjectId(resident_data_id),
+  );
+  if (!resident_data.length) {
+    return res.status(404).json({
+      message:
+        'No resident_data is found for this employee. Ensure that employee accounts are registered using the web dashboard',
+    });
+  }
+  // HACK: spread deez nuts xD
+  const merged_data = { ...employee[0], ...resident_data[0] };
+  return res
+    .status(200)
+    .json({ message: 'Employee found.', data: merged_data });
+};
+
 export {
   employee_login_controller,
   employee_delete_controller,
   employee_update_controller,
   employee_change_password_controller,
+  employee_avatar_update_controller,
+  employee_data_controller,
 };
