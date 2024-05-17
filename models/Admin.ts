@@ -6,6 +6,7 @@ const AdminSchema = z.object({
   password: z.string(),
   google_account_id: z.optional(z.string()),
   resident_data_id: z.optional(z.instanceof(ObjectId)),
+  avatar_url: z.optional(z.string()),
 });
 
 type Admin = z.infer<typeof AdminSchema>;
