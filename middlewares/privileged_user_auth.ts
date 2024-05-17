@@ -42,7 +42,7 @@ const privileged_user_auth = async (
     // WARN: this is a temporary solution
     // we need a better way like implement a database
     // in which a firebase uid is mapped to their respective role
-    req.headers['role'] = 'admin';
+    req.headers['role'] = 'employee';
     req.headers['email'] = firebase_verify_result.email;
     next();
     // NOTE: not sure if next causes the function to return
