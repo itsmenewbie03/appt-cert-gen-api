@@ -1,9 +1,9 @@
-import { createReport } from "docx-templates";
-import { ReportData } from "../models/ReportData";
-import { download } from "./file_host";
-const date_hack = (date: Date) => date.toISOString().split("T")[0];
+import { createReport } from 'docx-templates';
+import { ReportData } from '../models/ReportData';
+import { download } from './file_host';
+const date_hack = (date: Date) => date.toISOString().split('T')[0];
 const generate_report = async (data: ReportData) => {
-  const template_data = await download("/TEMPLATES/REPORT_TEMPLATE.docx");
+  const template_data = await download('/TEMPLATES/REPORT_TEMPLATE.docx');
   if (!template_data) {
     return;
   }
@@ -15,7 +15,7 @@ const generate_report = async (data: ReportData) => {
   const report = await createReport({
     template: Buffer.from(template_data.fileBinary),
     data,
-    cmdDelimiter: ["{", "}"],
+    cmdDelimiter: ['{', '}'],
   });
   return Buffer.from(report);
 };

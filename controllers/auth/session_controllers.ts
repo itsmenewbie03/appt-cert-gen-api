@@ -1,20 +1,20 @@
-import type { Request, Response } from "express";
-import { generate_token, verify_token } from "../../utils/jwt";
+import type { Request, Response } from 'express';
+import { generate_token, verify_token } from '../../utils/jwt';
 import {
   delete_refresh_token_by,
   find_refresh_token_by,
-} from "../../services/refresh_token_services";
+} from '../../services/refresh_token_services';
 const session_refresh_controller = async (req: Request, res: Response) => {
   const error_codes = [
-    "ERR_JWT_EXPIRED",
-    "ERR_JWS_INVALID",
-    "ERR_JWS_SIGNATURE_VERIFICATION_FAILED",
+    'ERR_JWT_EXPIRED',
+    'ERR_JWS_INVALID',
+    'ERR_JWS_SIGNATURE_VERIFICATION_FAILED',
   ];
   const { authorization } = req.headers;
   if (!authorization) {
     return res.status(401).json({
       message:
-        "You are not authorized to access this resource. Wanna go to jail?",
+        'You are not authorized to access this resource. Wanna go to jail?',
     });
   }
   const token = /(?<=Bearer\s)(.*)/g.exec(authorization)?.[0];
@@ -24,7 +24,7 @@ const session_refresh_controller = async (req: Request, res: Response) => {
     });
   }
   // let's verify the token still because we have trust issues
-  const token_data = await verify_token(token, "refresh_token").catch(
+  const token_data = await verify_token(token, 'refresh_token').catch(
     (err) => err.code,
   );
   // check if ERR_JWS_INVALID || ERR_JWT_EXPIRED || ERR_JWS_SIGNATURE_VERIFICATION_FAILED
@@ -37,7 +37,7 @@ const session_refresh_controller = async (req: Request, res: Response) => {
   // trust issues go brrrrr
   if (!role || !email) {
     return res.status(403).json({
-      message: "Token does not contain all the needed information.",
+      message: 'Token does not contain all the needed information.',
     });
   }
   // check if the refresh token is in db
@@ -45,29 +45,29 @@ const session_refresh_controller = async (req: Request, res: Response) => {
 
   if (refresh_token.length == 0) {
     return res.status(404).json({
-      message: "The token you provided is not found in the database.",
+      message: 'The token you provided is not found in the database.',
     });
   }
   // send a new access token now
   const access_token_data = { role: role, email: email };
-  const access_token = await generate_token(access_token_data, "access_token");
+  const access_token = await generate_token(access_token_data, 'access_token');
   return res.status(200).json({
-    message: "Access token successfully generated",
+    message: 'Access token successfully generated',
     access_token: access_token,
   });
 };
 
 const session_logout_controller = async (req: Request, res: Response) => {
   const error_codes = [
-    "ERR_JWT_EXPIRED",
-    "ERR_JWS_INVALID",
-    "ERR_JWS_SIGNATURE_VERIFICATION_FAILED",
+    'ERR_JWT_EXPIRED',
+    'ERR_JWS_INVALID',
+    'ERR_JWS_SIGNATURE_VERIFICATION_FAILED',
   ];
   const { authorization } = req.headers;
   if (!authorization) {
     return res.status(401).json({
       message:
-        "You are not authorized to access this resource. Wanna go to jail?",
+        'You are not authorized to access this resource. Wanna go to jail?',
     });
   }
   const token = /(?<=Bearer\s)(.*)/g.exec(authorization)?.[0];
@@ -77,7 +77,7 @@ const session_logout_controller = async (req: Request, res: Response) => {
     });
   }
   // let's verify the token still because we have trust issues
-  const token_data = await verify_token(token, "refresh_token").catch(
+  const token_data = await verify_token(token, 'refresh_token').catch(
     (err) => err.code,
   );
   // check if ERR_JWS_INVALID || ERR_JWT_EXPIRED || ERR_JWS_SIGNATURE_VERIFICATION_FAILED
@@ -90,7 +90,7 @@ const session_logout_controller = async (req: Request, res: Response) => {
   // trust issues go brrrrr
   if (!role || !email) {
     return res.status(403).json({
-      message: "Token does not contain all the needed information.",
+      message: 'Token does not contain all the needed information.',
     });
   }
   // check if the refresh token is in db
@@ -98,7 +98,7 @@ const session_logout_controller = async (req: Request, res: Response) => {
   const refresh_token = await find_refresh_token_by({ refresh_token: token });
   if (refresh_token.length == 0) {
     return res.status(404).json({
-      message: "The token you provided is not found in the database.",
+      message: 'The token you provided is not found in the database.',
     });
   }
   // send a new access token now
@@ -107,11 +107,11 @@ const session_logout_controller = async (req: Request, res: Response) => {
   });
   if (delete_result.acknowledged && delete_result.deletedCount > 0) {
     return res.status(200).json({
-      message: "Logout successful",
+      message: 'Logout successful',
     });
   }
   return res.status(400).json({
-    message: "Logout failed, please try again.",
+    message: 'Logout failed, please try again.',
   });
 };
 
@@ -119,12 +119,12 @@ const session_status_controller = async (req: Request, res: Response) => {
   const { email, role } = req.headers;
   if (!email || !role) {
     return res.status(400).json({
-      message: "The token does not contain the information needed.",
+      message: 'The token does not contain the information needed.',
     });
   }
   return res
     .status(200)
-    .json({ message: "Success token is still valid", email, role });
+    .json({ message: 'Success token is still valid', email, role });
 };
 export {
   session_refresh_controller,

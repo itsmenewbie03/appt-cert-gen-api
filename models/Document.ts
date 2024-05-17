@@ -1,5 +1,5 @@
-import { ResidentSchemaExtended } from "./Resident";
-import { z } from "zod";
+import { ResidentSchemaExtended } from './Resident';
+import { z } from 'zod';
 
 // INFO: I'm out of ways to I'm doing this xD
 const RequiredDataSchema = z.array(ResidentSchemaExtended.keyof());

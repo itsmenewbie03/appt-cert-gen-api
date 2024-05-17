@@ -1,4 +1,4 @@
-import { listCommands } from "docx-templates";
+import { listCommands } from 'docx-templates';
 const is_equal_arrays = (arr1: string[], arr2: string[]) => {
   if (arr1.length !== arr2.length) {
     return false;
@@ -22,29 +22,29 @@ const validate_document_template = async (
   required_data: string[],
   is_paid: boolean = false,
 ): Promise<ValidateDocumentTemplate> => {
-  const commands = await listCommands(file, ["{", "}"]);
+  const commands = await listCommands(file, ['{', '}']);
   if (!commands.length) {
     return {
       success: false,
-      message: "The template does not contain any placeholders.",
+      message: 'The template does not contain any placeholders.',
     };
   }
   const commands_code = commands.map((item) => item.code);
   const commands_code_set = [...new Set(commands_code)];
   // PERF: explicitly check for or_number on the template if the document is paid
-  if (is_paid && !commands_code_set.includes("or_number")) {
+  if (is_paid && !commands_code_set.includes('or_number')) {
     return {
       success: false,
-      message: "The field or_number is required for a paid document.",
+      message: 'The field or_number is required for a paid document.',
     };
   }
   const matched = is_equal_arrays(commands_code_set, required_data);
   if (!matched) {
     return {
       success: false,
-      message: "The template does not match the required data",
+      message: 'The template does not match the required data',
     };
   }
-  return { success: true, message: "The template is valid" };
+  return { success: true, message: 'The template is valid' };
 };
 export { validate_document_template };

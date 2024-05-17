@@ -1,4 +1,4 @@
-import z from "zod";
+import z from 'zod';
 const DocumentDataSchema = z.object({
   name: z.string(),
   count: z.number(),

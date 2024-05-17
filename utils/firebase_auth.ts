@@ -1,6 +1,6 @@
-import { initializeApp, cert } from "firebase-admin/app";
-import { getAuth } from "firebase-admin/auth";
-import credentials from "../credentials/service-account.json";
+import { initializeApp, cert } from 'firebase-admin/app';
+import { getAuth } from 'firebase-admin/auth';
+import credentials from '../credentials/service-account.json';
 
 interface FirebaseVerifyTokenResult {
   email: string;
@@ -17,7 +17,7 @@ const verifyToken = async (
 ): Promise<FirebaseVerifyTokenResult | null> => {
   try {
     const decodedToken = await getAuth().verifyIdToken(id_token);
-    console.log("Successfully verified token:", decodedToken);
+    console.log('Successfully verified token:', decodedToken);
     const uid = decodedToken.uid;
     return {
       uid: uid,

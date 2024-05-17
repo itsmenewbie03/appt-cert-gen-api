@@ -1,11 +1,11 @@
-import type { Request, Response } from "express";
-import { validate_object_id } from "../../utils/object_id_validator";
-import { find_user_by, find_user_by_id } from "../../services/user_services";
+import type { Request, Response } from 'express';
+import { validate_object_id } from '../../utils/object_id_validator';
+import { find_user_by, find_user_by_id } from '../../services/user_services';
 import {
   Transaction,
   TransactionSchema,
   TransactionStatusSchema,
-} from "../../models/Transaction";
+} from '../../models/Transaction';
 import {
   add_new_transaction,
   delete_transaction_by_id,
@@ -13,11 +13,11 @@ import {
   find_user_transactions_by_user_id,
   get_all_transaction,
   update_transaction_by_id,
-} from "../../services/transaction_services";
-import { find_resident_by_id } from "../../services/resident_services";
-import { find_document_by_id } from "../../services/document_services";
-import { ObjectId } from "mongodb";
-import { add_new_notification } from "../../services/notification_services";
+} from '../../services/transaction_services';
+import { find_resident_by_id } from '../../services/resident_services';
+import { find_document_by_id } from '../../services/document_services';
+import { ObjectId } from 'mongodb';
+import { add_new_notification } from '../../services/notification_services';
 
 /**
  * This controller is for handling user requested appointment
@@ -31,7 +31,7 @@ const appointment_create_controller = async (req: Request, res: Response) => {
   if (!document_id) {
     return res
       .status(400)
-      .json({ message: "Please provide all the required data." });
+      .json({ message: 'Please provide all the required data.' });
   }
   const validated_document_id = validate_object_id(document_id);
   if (!validated_document_id.success) {
@@ -39,14 +39,14 @@ const appointment_create_controller = async (req: Request, res: Response) => {
   }
 
   // INFO: fetch user_id from email
-  const email = req.headers["email"] as string;
+  const email = req.headers['email'] as string;
   const user = await find_user_by({ email });
 
   // NOTE: this would be weird if this code executes
   if (!user.length) {
     return res
       .status(404)
-      .json({ message: "The user is not found in the database" });
+      .json({ message: 'The user is not found in the database' });
   }
   // INFO: we have access to user_id now
   const { _id: user_id } = user[0];
@@ -62,13 +62,13 @@ const appointment_create_controller = async (req: Request, res: Response) => {
     return res.status(400).json({
       message: `The appointment data provided is not valid.`,
       cause: `${parsed_appointment_data.error.issues
-        .map((val, i) => `${val.path.join("|")}: ${val.message}`)
-        .join("; ")}.`,
+        .map((val, i) => `${val.path.join('|')}: ${val.message}`)
+        .join('; ')}.`,
     });
   }
   // HACK: magic xD
   const appointment_data: Transaction = {
-    status: "pending",
+    status: 'pending',
     user_id: user_id,
     // NOTE: we explicitly set the type of object_id to ObjectId
     document_id: new ObjectId(validated_document_id.object_id),
@@ -78,10 +78,10 @@ const appointment_create_controller = async (req: Request, res: Response) => {
   if (!result.acknowledged || !result.insertedId) {
     return res.status(500).json({
       message:
-        "An error is encountered while trying to store data to the database.",
+        'An error is encountered while trying to store data to the database.',
     });
   }
-  return res.status(200).json({ message: "Appointment created successfully." });
+  return res.status(200).json({ message: 'Appointment created successfully.' });
 };
 
 // BUG: this would be buggy but idc atm
@@ -102,8 +102,8 @@ const appointment_list_controller = async (req: Request, res: Response) => {
       // we know what we are doing so we gonna ts-ignore this
       // @ts-ignore
       const resident_data = await find_resident_by_id(e?.resident_id);
-      temp["user_data"] = { ...resident_data[0] };
-      temp["document_data"] = { ...document_data[0] };
+      temp['user_data'] = { ...resident_data[0] };
+      temp['document_data'] = { ...document_data[0] };
       console.log(`DEBUG: pushing ${JSON.stringify(temp)}`);
       data.push(temp);
       // NOTE: restart the loop
@@ -113,8 +113,8 @@ const appointment_list_controller = async (req: Request, res: Response) => {
     console.log(`DEBUG: document data ${JSON.stringify(document_data)}`);
     const { resident_data_id } = user_data[0];
     const resident_data = await find_resident_by_id(resident_data_id);
-    temp["user_data"] = { ...resident_data[0] };
-    temp["document_data"] = { ...document_data[0] };
+    temp['user_data'] = { ...resident_data[0] };
+    temp['document_data'] = { ...document_data[0] };
     console.log(`DEBUG: pushing ${JSON.stringify(temp)}`);
     data.push(temp);
   }
@@ -122,10 +122,10 @@ const appointment_list_controller = async (req: Request, res: Response) => {
   if (!appointments.length) {
     return res
       .status(404)
-      .json({ message: "The appointments database is currently empty." });
+      .json({ message: 'The appointments database is currently empty.' });
   }
   return res.status(200).json({
-    message: "Appoinments retrieved successfully.",
+    message: 'Appoinments retrieved successfully.',
     data: data,
   });
 };
@@ -134,7 +134,7 @@ const appointment_update_controller = async (req: Request, res: Response) => {
   const { id, status } = req.body;
 
   if (!id || !status) {
-    return res.status(400).json({ message: "Missing required parameters." });
+    return res.status(400).json({ message: 'Missing required parameters.' });
   }
 
   const validated_id = validate_object_id(id);
@@ -145,7 +145,7 @@ const appointment_update_controller = async (req: Request, res: Response) => {
   const appointment = await find_transaction_by_id(validated_id.object_id);
   if (!appointment.length) {
     return res.status(404).json({
-      message: "No appoinment with the provided id is found on the database.",
+      message: 'No appoinment with the provided id is found on the database.',
     });
   }
 
@@ -154,8 +154,8 @@ const appointment_update_controller = async (req: Request, res: Response) => {
     return res.status(400).json({
       message: `The status provided is not valid.`,
       cause: `${validated_status.error.issues
-        .map((val, i) => `${val.path.join("|")}: ${val.message}`)
-        .join("; ")}.`,
+        .map((val, i) => `${val.path.join('|')}: ${val.message}`)
+        .join('; ')}.`,
     });
   }
 
@@ -173,7 +173,7 @@ const appointment_update_controller = async (req: Request, res: Response) => {
   if (!update_result.acknowledged || !update_result.modifiedCount) {
     return res
       .status(500)
-      .json({ message: "Failed to update the appointment. " });
+      .json({ message: 'Failed to update the appointment. ' });
   }
 
   // TODO: make a copy of `apppoinment` and change the sataus to the new status
@@ -184,8 +184,8 @@ const appointment_update_controller = async (req: Request, res: Response) => {
   return res.status(200).json({
     message: `Appointment status updated successfully. ${
       !user_notification_result
-        ? "However, user notification was not sent."
-        : "User notification was sent successfully."
+        ? 'However, user notification was not sent.'
+        : 'User notification was sent successfully.'
     }`,
   });
 };
@@ -193,7 +193,7 @@ const appointment_update_controller = async (req: Request, res: Response) => {
 const appointment_delete_controller = async (req: Request, res: Response) => {
   const { transaction_id } = req.body;
   if (!transaction_id) {
-    return res.status(400).json({ message: "Missing required parameters." });
+    return res.status(400).json({ message: 'Missing required parameters.' });
   }
   const validated_transaction_id = validate_object_id(transaction_id);
   if (!validated_transaction_id.success) {
@@ -203,9 +203,9 @@ const appointment_delete_controller = async (req: Request, res: Response) => {
     validated_transaction_id.object_id,
   );
   if (!delete_result.acknowledged || !delete_result.deletedCount) {
-    return res.status(500).json({ message: "Failed to delete transaction." });
+    return res.status(500).json({ message: 'Failed to delete transaction.' });
   }
-  return res.status(200).json({ message: "Transaction deleted successfully." });
+  return res.status(200).json({ message: 'Transaction deleted successfully.' });
 };
 
 const user_appointment_list_controller = async (
@@ -215,14 +215,14 @@ const user_appointment_list_controller = async (
   // HACK: the user_id won't be provided
 
   // INFO: fetch user_id from email
-  const email = req.headers["email"] as string;
+  const email = req.headers['email'] as string;
   const user = await find_user_by({ email });
 
   // NOTE: this would be weird if this code executes
   if (!user.length) {
     return res
       .status(404)
-      .json({ message: "The user is not found in the database" });
+      .json({ message: 'The user is not found in the database' });
   }
   // INFO: we have access to user_id now
   const { _id: user_id } = user[0];
@@ -233,7 +233,7 @@ const user_appointment_list_controller = async (
   if (!appointments.length) {
     return res
       .status(404)
-      .json({ message: "The appointments database is currently empty." });
+      .json({ message: 'The appointments database is currently empty.' });
   }
 
   for (const e of appointments) {
@@ -243,14 +243,14 @@ const user_appointment_list_controller = async (
     console.log(`DEBUG: document data ${JSON.stringify(document_data)}`);
     const { resident_data_id } = user_data[0];
     const resident_data = await find_resident_by_id(resident_data_id);
-    temp["user_data"] = { ...resident_data[0] };
-    temp["document_data"] = { ...document_data[0] };
+    temp['user_data'] = { ...resident_data[0] };
+    temp['document_data'] = { ...document_data[0] };
     console.log(`DEBUG: pushing ${JSON.stringify(temp)}`);
     data.push(temp);
   }
   console.log(`DEBUG: data after the loop ${JSON.stringify(data)}`);
   return res.status(200).json({
-    message: "Appoinments retrieved successfully.",
+    message: 'Appoinments retrieved successfully.',
     data: data,
   });
 };

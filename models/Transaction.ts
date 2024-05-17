@@ -1,11 +1,11 @@
-import { ObjectId } from "mongodb";
-import { z } from "zod";
+import { ObjectId } from 'mongodb';
+import { z } from 'zod';
 
 const TransactionStatusSchema = z.enum([
-  "completed",
-  "pending",
-  "rejected",
-  "waiting for payment",
+  'completed',
+  'pending',
+  'rejected',
+  'waiting for payment',
 ]);
 
 const TransactionSchema = z.object({

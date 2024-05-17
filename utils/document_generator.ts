@@ -1,5 +1,5 @@
-import { createReport } from "docx-templates";
-import { ResidentData, ResidentDataExtended } from "../models/Resident";
+import { createReport } from 'docx-templates';
+import { ResidentData, ResidentDataExtended } from '../models/Resident';
 /**
  * This functions throws an error when the data provided does not fulfill all the fields in the template, but extra datas are fine.
  **/
@@ -11,7 +11,7 @@ const generate_document = async (
     const result = await createReport({
       template,
       data: data,
-      cmdDelimiter: ["{", "}"],
+      cmdDelimiter: ['{', '}'],
     });
     return Buffer.from(result);
   } catch (err: any) {

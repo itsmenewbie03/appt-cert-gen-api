@@ -1,10 +1,10 @@
-import z from "zod";
+import z from 'zod';
 
 const GenderSchema = z.union([
-  z.literal("male"),
-  z.literal("female"),
-  z.literal("other"),
-  z.literal("prefer not to say"),
+  z.literal('male'),
+  z.literal('female'),
+  z.literal('other'),
+  z.literal('prefer not to say'),
 ]);
 
 const ResidentSchema = z.object({

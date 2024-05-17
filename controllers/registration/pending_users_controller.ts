@@ -1,26 +1,26 @@
-import type { Request, Response } from "express";
+import type { Request, Response } from 'express';
 import {
   delete_pending_user_by_id,
   find_pending_user_by_id,
   get_all_pending_user_with_info,
-} from "../../services/pending_user_services";
-import { validate_object_id } from "../../utils/object_id_validator";
-import { add_new_user } from "../../services/user_services";
+} from '../../services/pending_user_services';
+import { validate_object_id } from '../../utils/object_id_validator';
+import { add_new_user } from '../../services/user_services';
 import {
   delete_pending_resident_by_id,
   find_pending_resident_by_id,
-} from "../../services/pending_resident_services";
-import { add_new_resident } from "../../services/resident_services";
+} from '../../services/pending_resident_services';
+import { add_new_resident } from '../../services/resident_services';
 
 const pending_user_list_controller = async (req: Request, res: Response) => {
   const pending_users = await get_all_pending_user_with_info();
   if (!pending_users.length) {
     return res
       .status(400)
-      .json({ message: "The pending user database is currently empty." });
+      .json({ message: 'The pending user database is currently empty.' });
   }
   return res.status(200).json({
-    message: "Pending user databased retrieved successfully",
+    message: 'Pending user databased retrieved successfully',
     data: pending_users,
   });
 };
@@ -41,14 +41,14 @@ const pending_user_approve_controller = async (req: Request, res: Response) => {
   if (!pending_user.length) {
     return res.status(404).json({
       message:
-        "No user with provided id is found in the pending user database.",
+        'No user with provided id is found in the pending user database.',
     });
   }
   // NOTE: this will be a weird case but yeah trust issues xD
   if (!pending_user[0].resident_data_id) {
     return res.status(500).json({
       message:
-        "This is weird, please report to the admin, the user data is missing the key to pending resident database",
+        'This is weird, please report to the admin, the user data is missing the key to pending resident database',
     });
   }
 
@@ -59,7 +59,7 @@ const pending_user_approve_controller = async (req: Request, res: Response) => {
   if (!pending_resident_data.length) {
     return res.status(500).json({
       message:
-        "This is weird, please report to the admin, the user data provided a key that does not correspond to any data in the resident database.",
+        'This is weird, please report to the admin, the user data provided a key that does not correspond to any data in the resident database.',
     });
   }
   // INFO: uploading to the main collection
@@ -72,7 +72,7 @@ const pending_user_approve_controller = async (req: Request, res: Response) => {
   if (!result.acknowledged || !result.insertedId) {
     return res.status(500).json({
       message:
-        "An error is encountered while trying to store data to the database.",
+        'An error is encountered while trying to store data to the database.',
     });
   }
   const add_new_resident_result = await add_new_resident(
@@ -96,7 +96,7 @@ const pending_user_approve_controller = async (req: Request, res: Response) => {
     !delete_pending_user_result.deletedCount
   ) {
     return res.status(400).json({
-      message: "No user was deleted from the pending user database.",
+      message: 'No user was deleted from the pending user database.',
     });
   }
   const delete_pending_resident_result = await delete_pending_resident_by_id(
@@ -107,12 +107,12 @@ const pending_user_approve_controller = async (req: Request, res: Response) => {
     !delete_pending_resident_result.deletedCount
   ) {
     return res.status(400).json({
-      message: "No resident was deleted from the pending resident database.",
+      message: 'No resident was deleted from the pending resident database.',
     });
   }
   return res
     .status(200)
-    .json({ message: "Pending user approved successfully." });
+    .json({ message: 'Pending user approved successfully.' });
 };
 
 const pending_user_reject_controller = async (req: Request, res: Response) => {
@@ -130,14 +130,14 @@ const pending_user_reject_controller = async (req: Request, res: Response) => {
   if (!pending_user.length) {
     return res.status(404).json({
       message:
-        "No user with provided id is found in the pending user database.",
+        'No user with provided id is found in the pending user database.',
     });
   }
   // NOTE: this will be a weird case but yeah trust issues xD
   if (!pending_user[0].resident_data_id) {
     return res.status(500).json({
       message:
-        "This is weird, please report to the admin, the user data is missing the key to pending resident database",
+        'This is weird, please report to the admin, the user data is missing the key to pending resident database',
     });
   }
 
@@ -148,7 +148,7 @@ const pending_user_reject_controller = async (req: Request, res: Response) => {
   if (!pending_resident_data.length) {
     return res.status(500).json({
       message:
-        "This is weird, please report to the admin, the user data provided a key that does not correspond to any data in the resident database.",
+        'This is weird, please report to the admin, the user data provided a key that does not correspond to any data in the resident database.',
     });
   }
   // INFO: deleting the data stored in pending collection
@@ -160,7 +160,7 @@ const pending_user_reject_controller = async (req: Request, res: Response) => {
     !delete_pending_user_result.deletedCount
   ) {
     return res.status(400).json({
-      message: "No user was deleted from the pending user database.",
+      message: 'No user was deleted from the pending user database.',
     });
   }
   const delete_pending_resident_result = await delete_pending_resident_by_id(
@@ -171,12 +171,12 @@ const pending_user_reject_controller = async (req: Request, res: Response) => {
     !delete_pending_resident_result.deletedCount
   ) {
     return res.status(400).json({
-      message: "No resident was deleted from the pending resident database.",
+      message: 'No resident was deleted from the pending resident database.',
     });
   }
   return res
     .status(200)
-    .json({ message: "Pending user rejected successfully." });
+    .json({ message: 'Pending user rejected successfully.' });
 };
 
 export {

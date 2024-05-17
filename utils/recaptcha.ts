@@ -8,7 +8,7 @@ interface SuccessResponse {
 
 interface FailureResponse {
   success: false;
-  "error-codes": string[];
+  'error-codes': string[];
 }
 
 type RecaptchaVerificationResponse = SuccessResponse | FailureResponse;
@@ -18,10 +18,10 @@ const validate_recaptcha = async (
 ): Promise<RecaptchaVerificationResponse> => {
   const endpoint = `https://www.google.com/recaptcha/api/siteverify`;
   const opts = {
-    method: "POST",
+    method: 'POST',
     body: `secret=${process.env.RECAPTCHA_SECRET}&response=${token}`,
     headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
+      'Content-Type': 'application/x-www-form-urlencoded',
     },
   };
   console.log(`DEBUG: opts is ${JSON.stringify(opts)}`);

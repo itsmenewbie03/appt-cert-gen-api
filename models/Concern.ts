@@ -1,10 +1,10 @@
-import { ObjectId } from "mongodb";
+import { ObjectId } from 'mongodb';
 type ConcernStatus =
-  | "Open"
-  | "In Progress"
-  | "Closed"
-  | "Resolved"
-  | "Reopened";
+  | 'Open'
+  | 'In Progress'
+  | 'Closed'
+  | 'Resolved'
+  | 'Reopened';
 
 // Usage example
 

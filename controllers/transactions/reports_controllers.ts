@@ -1,13 +1,13 @@
-import type { Request, Response } from "express";
-import { get_all_transaction } from "../../services/transaction_services";
-import { DocumentData, ReportData } from "../../models/ReportData";
-import { DateRangeSchema } from "../../models/DateRange";
-import { find_document_by_id } from "../../services/document_services";
-import { ObjectId } from "mongodb";
-import { find_admin_by } from "../../services/admin_services";
-import { find_employee_by } from "../../services/employee_services";
-import { find_resident_by_id } from "../../services/resident_services";
-import { generate_report } from "../../utils/report_generator";
+import type { Request, Response } from 'express';
+import { get_all_transaction } from '../../services/transaction_services';
+import { DocumentData, ReportData } from '../../models/ReportData';
+import { DateRangeSchema } from '../../models/DateRange';
+import { find_document_by_id } from '../../services/document_services';
+import { ObjectId } from 'mongodb';
+import { find_admin_by } from '../../services/admin_services';
+import { find_employee_by } from '../../services/employee_services';
+import { find_resident_by_id } from '../../services/resident_services';
+import { generate_report } from '../../utils/report_generator';
 
 const generate_report_controller = async (req: Request, res: Response) => {
   const DateRangeValidator = DateRangeSchema.strip();
@@ -16,8 +16,8 @@ const generate_report_controller = async (req: Request, res: Response) => {
     return res.status(400).json({
       message: `The date range provided is not valid.`,
       cause: `${validated_date_range.error.issues
-        .map((val, i) => `${val.path.join("|")}: ${val.message}`)
-        .join("; ")}.`,
+        .map((val, i) => `${val.path.join('|')}: ${val.message}`)
+        .join('; ')}.`,
     });
   }
   const { start_date, end_date } = validated_date_range.data;
@@ -43,7 +43,7 @@ const generate_report_controller = async (req: Request, res: Response) => {
   // bye blazingly fast performance xD
   const docs: DocumentData[] = await Promise.all(
     Object.keys(document_request_data).map(async (key) => {
-      let name: string = "Unknown";
+      let name: string = 'Unknown';
       const document_data = await find_document_by_id(new ObjectId(key));
       if (document_data) {
         name = document_data[0].type;
@@ -57,18 +57,18 @@ const generate_report_controller = async (req: Request, res: Response) => {
   console.log(docs);
 
   // TODO: build the report data
-  const current_date = new Date().toLocaleString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "numeric",
-    minute: "numeric",
+  const current_date = new Date().toLocaleString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric',
     hour12: true,
   });
 
-  const role = req.headers["role"] as string;
-  const email = req.headers["email"] as string;
-  const find_by = role === "admin" ? find_admin_by : find_employee_by;
+  const role = req.headers['role'] as string;
+  const email = req.headers['email'] as string;
+  const find_by = role === 'admin' ? find_admin_by : find_employee_by;
   let name: string | null = null;
   // NOTE: this is almost guaranteed to never fail
   // but we have trust issues
@@ -89,12 +89,12 @@ const generate_report_controller = async (req: Request, res: Response) => {
   const report_docx = await generate_report(report_data);
   if (!report_docx) {
     return res.status(500).json({
-      message: "An error occured while generating the report.",
+      message: 'An error occured while generating the report.',
     });
   }
   return res.status(200).json({
-    message: "Report generated successfully.",
-    document: report_docx.toString("base64"),
+    message: 'Report generated successfully.',
+    document: report_docx.toString('base64'),
   });
 };
 

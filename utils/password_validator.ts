@@ -1,4 +1,4 @@
-import PasswordValidator from "password-validator";
+import PasswordValidator from 'password-validator';
 
 const schema = new PasswordValidator();
 

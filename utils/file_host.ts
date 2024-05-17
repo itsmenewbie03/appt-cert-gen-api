@@ -1,8 +1,8 @@
-import { Dropbox } from "dropbox";
+import { Dropbox } from 'dropbox';
 import {
   get_dropbox_access_token,
   refresh_dropbox_access_token,
-} from "./dropbox";
+} from './dropbox';
 
 const upload = async (
   file_buffer: Buffer,
@@ -21,9 +21,9 @@ const upload = async (
     });
 
     const resp = await dbx.filesUpload({
-      path: "/TEMPLATES/" + file_name,
+      path: '/TEMPLATES/' + file_name,
       contents: file_buffer,
-      mode: { ".tag": "overwrite" },
+      mode: { '.tag': 'overwrite' },
     });
 
     const path_to_file = resp.result.path_display;
@@ -50,7 +50,7 @@ const custom_fetch = async (
 ): Promise<Response> => {
   const response = await globalThis.fetch(request, init);
 
-  return Object.defineProperty(response, "buffer", {
+  return Object.defineProperty(response, 'buffer', {
     value: response.arrayBuffer,
   });
 };

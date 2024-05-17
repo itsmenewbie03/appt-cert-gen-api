@@ -1,4 +1,4 @@
-import { MongoClient, ServerApiVersion } from "mongodb";
+import { MongoClient, ServerApiVersion } from 'mongodb';
 
 const connectionOptions = {
   serverApi: {
@@ -18,7 +18,7 @@ const closeConnection = async () => {
   try {
     await client.close();
   } catch (error) {
-    console.error("Error closing the MongoDB connection:", error);
+    console.error('Error closing the MongoDB connection:', error);
   }
 };
 

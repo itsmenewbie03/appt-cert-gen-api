@@ -1,4 +1,4 @@
-import qs from "querystring";
+import qs from 'querystring';
 interface GoogleTokensResult {
   access_token: string;
   expires_in: Number;
@@ -22,21 +22,21 @@ interface GoogleUserResult {
 const getGoogleOAuthTokens = async (
   code: string,
 ): Promise<GoogleTokensResult> => {
-  const url = "https://oauth2.googleapis.com/token";
+  const url = 'https://oauth2.googleapis.com/token';
 
   const values = {
     code,
     client_id: process.env.GAUTH_CLIENT_ID,
     client_secret: process.env.GAUTH_CLIENT_SECRET,
-    redirect_uri: "http://localhost:5173/oauth",
-    grant_type: "authorization_code",
+    redirect_uri: 'http://localhost:5173/oauth',
+    grant_type: 'authorization_code',
   };
 
   try {
     const res = await fetch(url, {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "content-type": "application/x-www-form-urlencoded",
+        'content-type': 'application/x-www-form-urlencoded',
       },
       body: qs.stringify(values),
     }).then((res) => res.json());
@@ -56,7 +56,7 @@ const getGoogleUser = async (
     const resp = await fetch(
       `https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=${access_token}`,
       {
-        method: "GET",
+        method: 'GET',
         headers: {
           Authorization: `Bearer ${id_token}`,
         },

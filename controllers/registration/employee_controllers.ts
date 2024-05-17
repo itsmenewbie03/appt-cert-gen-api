@@ -1,33 +1,33 @@
-import type { Request, Response } from "express";
-import evaluate_password from "../../utils/password_validator";
-import { hash } from "../../utils/password_auth";
-import { ResidentSchema, ResidentData } from "../../models/Resident";
+import type { Request, Response } from 'express';
+import evaluate_password from '../../utils/password_validator';
+import { hash } from '../../utils/password_auth';
+import { ResidentSchema, ResidentData } from '../../models/Resident';
 import {
   add_new_resident,
   find_resident_by,
-} from "../../services/resident_services";
+} from '../../services/resident_services';
 import {
   add_new_employee,
   find_employee_by,
-} from "../../services/employee_services";
-import { Admin } from "../../models/Admin";
-import { is_valid_email } from "../../utils/email_validator";
+} from '../../services/employee_services';
+import { Admin } from '../../models/Admin';
+import { is_valid_email } from '../../utils/email_validator';
 import {
   duration_to_seconds,
   get_age_in_seconds,
-} from "../../utils/date_utils";
+} from '../../utils/date_utils';
 
 const employee_register_controller = async (req: Request, res: Response) => {
   const { email, password, info } = req.body;
   if (!email || !password || !info) {
     return res
       .status(400)
-      .json({ message: "Invalid request, please use your brain." });
+      .json({ message: 'Invalid request, please use your brain.' });
   }
 
   if (!(await is_valid_email(email))) {
     return res.status(400).json({
-      message: "The email provided is not valid.",
+      message: 'The email provided is not valid.',
     });
   }
 
@@ -38,8 +38,8 @@ const employee_register_controller = async (req: Request, res: Response) => {
     return res.status(400).json({
       message: `The resident data provided is not valid.`,
       cause: `${resident_data_parsed.error.issues
-        .map((val, i) => `${val.path.join("|")}: ${val.message}`)
-        .join("; ")}.`,
+        .map((val, i) => `${val.path.join('|')}: ${val.message}`)
+        .join('; ')}.`,
     });
   }
 
@@ -48,17 +48,17 @@ const employee_register_controller = async (req: Request, res: Response) => {
   if (employee.length > 0) {
     return res
       .status(400)
-      .json({ message: "The email provided is already registered." });
+      .json({ message: 'The email provided is already registered.' });
   }
 
   const password_evaluation = evaluate_password(password);
   if (password_evaluation.length > 0) {
     const reasons = password_evaluation.map((reason, index) => {
-      return reason.message.replace("string", "password");
+      return reason.message.replace('string', 'password');
     });
     return res.status(400).json({
       message:
-        "The password provides does not pass the criteria of accepted passwords.",
+        'The password provides does not pass the criteria of accepted passwords.',
       reasons: reasons,
     });
   }
@@ -88,21 +88,21 @@ const employee_register_controller = async (req: Request, res: Response) => {
     const { period_of_residency, date_of_birth } = resident_data_parsed.data;
     if (date_of_birth > new Date(Date.now())) {
       return res.status(400).json({
-        message: "The date of birth provided is in the future.",
+        message: 'The date of birth provided is in the future.',
       });
     }
 
     const period_of_residency_in_sec = duration_to_seconds(period_of_residency);
     if (period_of_residency_in_sec < 0) {
       return res.status(400).json({
-        message: "Invalid period of residency.",
+        message: 'Invalid period of residency.',
       });
     }
 
     const age_in_seconds = get_age_in_seconds(date_of_birth);
     if (age_in_seconds < period_of_residency_in_sec) {
       return res.status(400).json({
-        message: "The period of residency exceeds the age of the resident.",
+        message: 'The period of residency exceeds the age of the resident.',
       });
     }
 
@@ -135,10 +135,10 @@ const employee_register_controller = async (req: Request, res: Response) => {
   if (!result.acknowledged || !result.insertedId) {
     return res.status(500).json({
       message:
-        "An error is encountered while trying to store data to the database.",
+        'An error is encountered while trying to store data to the database.',
     });
   }
-  return res.status(200).json({ message: "Employee registered successfully." });
+  return res.status(200).json({ message: 'Employee registered successfully.' });
 };
 
 export { employee_register_controller };
