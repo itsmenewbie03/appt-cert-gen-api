@@ -11,7 +11,7 @@ import {
 
 const employee_accounts_router = Router();
 
-employee_accounts_router.use(json());
+employee_accounts_router.use(json({ limit: '10Mb' }));
 
 employee_accounts_router.delete(
   '/delete',
