@@ -230,7 +230,7 @@ const employee_avatar_update_controller = async (
     // NOTE: this should be 500 but we will instead blame the client by returning 400 xD
     return res.status(400).json({ message: 'Failed to upload the image.' });
   }
-  const update = { avatar: url };
+  const update = { avatar_url: url };
   const update_schema = AdminSchema.partial().strip();
   const parsed_update = update_schema.safeParse(update);
   if (!parsed_update.success) {
