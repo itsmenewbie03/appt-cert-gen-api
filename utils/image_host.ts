@@ -1,4 +1,13 @@
-const upload_image = async (image: Buffer): Promise<string | null> => {
+const extract_direct_link = async (
+  url: string,
+): Promise<string | undefined> => {
+  const html = await fetch(url).then((res) => res.text());
+  const rgx = /(?<=id="main-image" src=")(.*)(?="\s+s)/;
+  const captured = html.match(rgx);
+  return captured?.[0];
+};
+
+const upload_image = async (image: Buffer): Promise<string | undefined> => {
   const formData = new FormData();
   formData.append('gallery', 'wyFxG1G');
   formData.append('optsize', 0);
@@ -35,9 +44,9 @@ const upload_image = async (image: Buffer): Promise<string | null> => {
   // @ts-ignore
   const { status, url } = data;
   if (status !== 'OK') {
-    return null;
+    return;
   }
-  return url;
+  return await extract_direct_link(url);
 };
 
 export { upload_image };
